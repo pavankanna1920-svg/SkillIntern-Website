@@ -121,9 +121,33 @@ const CreativitySymbol = () => {
 };
 
 const Hero3D: React.FC = () => {
+  const [hasWebGLError, setHasWebGLError] = React.useState(false);
+
+  // Fallback gradient background when WebGL fails
+  if (hasWebGLError) {
+    return (
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-gradevo-navy via-gradevo-blue/20 to-gradevo-navy">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 right-20 w-96 h-96 bg-gradevo-red/30 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 left-20 w-96 h-96 bg-gradevo-blue/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="absolute inset-0 z-0">
-      <Canvas dpr={[1, window.innerWidth < 768 ? 1.5 : 2]} gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping }}>
+      <Canvas
+        dpr={[1, window.innerWidth < 768 ? 1.5 : 2]}
+        gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping }}
+        onCreated={(state) => {
+          // Check if WebGL context was created successfully
+          if (!state.gl.getContext()) {
+            setHasWebGLError(true);
+          }
+        }}
+        onError={() => setHasWebGLError(true)}
+      >
         <PerspectiveCamera makeDefault position={[0, 0, 8]} fov={35} />
 
         {/* Cinematic Lighting */}

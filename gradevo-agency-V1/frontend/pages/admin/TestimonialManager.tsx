@@ -105,7 +105,7 @@ const TestimonialManager: React.FC = () => {
                     <div key={item.id} className="bg-white p-4 rounded shadow flex justify-between items-center">
                         <div className="flex items-center gap-4">
                             {item.image_url && (
-                                <img src={`${import.meta.env.VITE_API_URL}${item.image_url}`} alt={item.name} className="w-12 h-12 rounded-full object-cover" />
+                                <img src={item.image_url?.startsWith('http') ? item.image_url : `${import.meta.env.VITE_API_URL}${item.image_url}`} alt={item.name} className="w-12 h-12 rounded-full object-cover" />
                             )}
                             <div>
                                 <h3 className="font-bold">{item.name}</h3>

@@ -8,27 +8,7 @@ import fs from 'fs';
 
 const router = express.Router();
 
-// Configure Multer for file uploads
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const uploadDir = join(__dirname, '../uploads');
-
-// Ensure upload directory exists
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + '-' + file.originalname);
-    }
-});
-
-const upload = multer({ storage: storage });
+import upload from '../middleware/upload.js';
 
 router.get('/services', async (req, res) => {
     try {
@@ -90,7 +70,7 @@ router.get('/portfolio', async (req, res) => {
 
 router.post('/portfolio', authenticateToken, upload.single('image'), async (req, res) => {
     const { title, category, description, project_url, tech_stack, is_featured } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : req.body.image;
+    const image = req.file ? req.file.path : req.body.image;
     const isFeatured = is_featured === 'true' || is_featured === true;
 
     try {
@@ -109,7 +89,7 @@ router.put('/portfolio/:id', authenticateToken, upload.single('image'), async (r
     const { title, category, description, project_url, tech_stack, is_featured } = req.body;
     let image = req.body.image;
     if (req.file) {
-        image = `/uploads/${req.file.filename}`;
+        image = req.file.path;
     }
     const isFeatured = is_featured === 'true' || is_featured === true;
 
@@ -146,7 +126,7 @@ router.get('/testimonials', async (req, res) => {
 
 router.post('/testimonials', authenticateToken, upload.single('image'), async (req, res) => {
     const { name, role, content, linkedin_url } = req.body;
-    const image_url = req.file ? `/uploads/${req.file.filename}` : req.body.image_url;
+    const image_url = req.file ? req.file.path : req.body.image_url;
 
     try {
         const result = await pool.query(
@@ -164,7 +144,7 @@ router.put('/testimonials/:id', authenticateToken, upload.single('image'), async
     const { name, role, content, linkedin_url } = req.body;
     let image_url = req.body.image_url;
     if (req.file) {
-        image_url = `/uploads/${req.file.filename}`;
+        image_url = req.file.path;
     }
 
     try {
@@ -203,7 +183,7 @@ router.post('/site-content', authenticateToken, upload.single('image'), async (r
     let { value } = req.body;
 
     if (req.file) {
-        value = `/uploads/${req.file.filename}`;
+        value = req.file.path;
     }
 
     try {
@@ -229,7 +209,7 @@ router.get('/dna', async (req, res) => {
 
 router.post('/dna', authenticateToken, upload.single('image'), async (req, res) => {
     const { title, description } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : req.body.image;
+    const image = req.file ? req.file.path : req.body.image;
 
     try {
         const result = await pool.query(
@@ -247,7 +227,7 @@ router.put('/dna/:id', authenticateToken, upload.single('image'), async (req, re
     const { title, description } = req.body;
     let image = req.body.image;
     if (req.file) {
-        image = `/uploads/${req.file.filename}`;
+        image = req.file.path;
     }
 
     try {
