@@ -12,6 +12,7 @@ const Contact: React.FC = () => {
     message: ''
   });
   const [contactInfo, setContactInfo] = useState<any>({});
+  const [loadingInfo, setLoadingInfo] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -30,6 +31,8 @@ const Contact: React.FC = () => {
       setContactInfo(info);
     } catch (err) {
       console.error('Failed to fetch contact info', err);
+    } finally {
+      setLoadingInfo(false);
     }
   };
 
@@ -113,7 +116,11 @@ const Contact: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="text-white font-semibold mb-1">Email Us</h4>
-                  <p className="text-gray-400">{contactInfo.email || 'hello@gradevo.com'}</p>
+                  {loadingInfo ? (
+                    <div className="h-6 w-48 bg-white/10 animate-pulse rounded"></div>
+                  ) : (
+                    <p className="text-gray-400">{contactInfo.email || 'hello@gradevo.com'}</p>
+                  )}
                 </div>
               </div>
 
@@ -123,7 +130,11 @@ const Contact: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="text-white font-semibold mb-1">Call Us</h4>
-                  <p className="text-gray-400">{contactInfo.phone || '+91 80885 00769'}</p>
+                  {loadingInfo ? (
+                    <div className="h-6 w-32 bg-white/10 animate-pulse rounded"></div>
+                  ) : (
+                    <p className="text-gray-400">{contactInfo.phone || '+91 80885 00769'}</p>
+                  )}
                 </div>
               </div>
 
@@ -133,7 +144,11 @@ const Contact: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="text-white font-semibold mb-1">Visit Us</h4>
-                  <p className="text-gray-400">{contactInfo.address || 'India'}</p>
+                  {loadingInfo ? (
+                    <div className="h-6 w-40 bg-white/10 animate-pulse rounded"></div>
+                  ) : (
+                    <p className="text-gray-400 whitespace-pre-line">{contactInfo.address || 'India'}</p>
+                  )}
                 </div>
               </div>
             </div>
