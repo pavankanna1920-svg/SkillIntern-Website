@@ -372,7 +372,7 @@ export default function ExplorePage() {
                         </DropdownMenu>
                     ) : (
                         <Link href="/login">
-                            <Button variant="outline" className="bg-white text-black border-white hover:bg-gray-200 hover:text-black font-bold backdrop-blur-md px-6">
+                            <Button className="bg-white text-black hover:bg-gray-200 font-bold px-6 shadow-lg">
                                 Log in
                             </Button>
                         </Link>
