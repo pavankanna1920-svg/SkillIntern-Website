@@ -365,7 +365,11 @@ export default function ExplorePage() {
                                 <DropdownMenuSeparator className="bg-white/10" />
                                 <DropdownMenuItem
                                     className="cursor-pointer text-red-400 focus:bg-red-500/10 focus:text-red-400"
-                                    onSelect={() => signOut({ callbackUrl: "/login" })}
+                                    onSelect={async (e) => {
+                                        e.preventDefault();
+                                        await signOut({ redirect: false });
+                                        window.location.href = "/login";
+                                    }}
                                 >
                                     <LogOut className="mr-2 h-4 w-4" /> Log out
                                 </DropdownMenuItem>
