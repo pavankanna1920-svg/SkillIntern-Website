@@ -226,6 +226,14 @@ export default function StartoMap({
                 onLoad={onLoad}
                 options={mapOptions}
             >
+                {/* Brand Overlay - Always visible on top of map canvas */}
+                <div className="absolute top-2 right-14 md:right-16 z-10 bg-background/90 backdrop-blur-md border border-border px-3 py-1.5 rounded-lg shadow-sm pointer-events-none select-none">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">Starto Intelligence</span>
+                    </div>
+                </div>
+
                 {/* User Location Marker (Functional Only) */}
                 {mode === "functional" && (
                     <>

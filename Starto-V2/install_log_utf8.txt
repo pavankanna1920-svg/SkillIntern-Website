@@ -1,0 +1,24 @@
+npm error code ERESOLVE
+npm error ERESOLVE unable to resolve dependency tree
+npm error
+npm error While resolving: starto-v2@0.1.0
+npm error Found: nodemailer@6.10.1
+npm error node_modules/nodemailer
+npm error   nodemailer@"^6.9.13" from the root project
+npm error
+npm error Could not resolve dependency:
+npm error peerOptional nodemailer@"^7.0.7" from next-auth@4.24.13
+npm error node_modules/next-auth
+npm error   next-auth@"^4.24.7" from the root project
+npm error   peer next-auth@"^4" from @next-auth/prisma-adapter@1.0.7
+npm error   node_modules/@next-auth/prisma-adapter
+npm error     @next-auth/prisma-adapter@"^1.0.7" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error e:\npm-cache\_logs\2025-12-27T11_05_19_324Z-eresolve-report.txt
+npm error A complete log of this run can be found in: e:\npm-cache\_logs\2025-12-27T11_05_19_324Z-debug-0.log

@@ -34,9 +34,9 @@ export async function POST(req: Request) {
         // 1. Update the specific profile
         if (role === "startup") {
             log("STARTUP_UPDATE_START", { userId: user.id });
-            await prisma.startupProfile.update({
+            await prisma.startupProfile.upsert({
                 where: { ownerId: user.id },
-                data: {
+                update: {
                     name: data.name,
                     industry: data.industry,
                     stage: data.stage,
@@ -50,14 +50,29 @@ export async function POST(req: Request) {
                     website: data.website,
                     isActive: true, // Mark as Active
                 },
+                create: {
+                    ownerId: user.id,
+                    name: data.name || "My Startup",
+                    industry: data.industry,
+                    stage: data.stage,
+                    teamSize: data.teamSize,
+                    fundingRound: data.fundingRound,
+                    fundingNeeded: data.fundingNeeded,
+                    minHiringBudget: data.minHiringBudget,
+                    maxHiringBudget: data.maxHiringBudget,
+                    oneLiner: data.oneLiner,
+                    description: data.description,
+                    website: data.website,
+                    isActive: true,
+                }
             });
             log("STARTUP_UPDATE_SUCCESS", {});
         } else if (role === "freelancer") {
             // ... freelancer update ...
             log("FREELANCER_UPDATE_START", { userId: user.id });
-            await prisma.freelancerProfile.update({
+            await prisma.freelancerProfile.upsert({
                 where: { userId: user.id },
-                data: {
+                update: {
                     headline: data.headline,
                     skills: data.skills,
                     experience: data.experience,
@@ -68,6 +83,18 @@ export async function POST(req: Request) {
                     linkedin: data.linkedin,
                     isActive: true, // Mark as Active
                 },
+                create: {
+                    userId: user.id,
+                    headline: data.headline,
+                    skills: data.skills,
+                    experience: data.experience,
+                    availability: data.availability,
+                    workType: data.workType,
+                    portfolio: data.portfolio,
+                    github: data.github,
+                    linkedin: data.linkedin,
+                    isActive: true,
+                }
             });
             log("FREELANCER_UPDATE_SUCCESS", {});
         } else if (role === "investor") {
