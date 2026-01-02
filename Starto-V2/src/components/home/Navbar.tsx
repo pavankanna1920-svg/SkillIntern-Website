@@ -58,9 +58,9 @@ import { UserNav } from "./UserNav";
 const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Explore Market", href: "/explore", icon: Globe },
-    { label: "Nearby", href: "/nearby", icon: MapPin },
+    { label: "Find Nearby", href: "/nearby", icon: MapPin },
     { label: "Connections", href: "/dashboard/connections", icon: Users },
-    { label: "Profile", href: "/dashboard/profile", icon: User },
+    { label: "My Profile", href: "/dashboard/profile", icon: User },
     { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
@@ -239,15 +239,17 @@ export function Navbar() {
                                             <Link
                                                 key={item.href}
                                                 href={item.href}
-                                                className="flex items-center gap-4 p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 active:bg-zinc-200 transition-colors text-zinc-900 dark:text-zinc-100"
+                                                className="flex items-center gap-4 p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 active:bg-zinc-200 transition-colors text-zinc-900 dark:text-zinc-100 group"
                                                 onClick={() => setMobileMenuOpen(false)}
                                             >
-                                                <div className="p-2 rounded-lg bg-black/5 dark:bg-white/5 text-primary">
+                                                <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
                                                     <item.icon className="w-5 h-5" />
                                                 </div>
                                                 <span className="font-semibold text-lg">{item.label}</span>
                                             </Link>
                                         ))}
+
+                                        <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-2" />
 
                                         <button
                                             onClick={async () => {

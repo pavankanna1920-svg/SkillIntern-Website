@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Globe } from "lucide-react";
 import StartoMap from "@/components/map-engine/StartoMap";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 
 export function HeroSection() {
     return (
@@ -60,11 +61,37 @@ export function HeroSection() {
                     transition={{ duration: 0.8, delay: 0.6 }}
                     className="flex flex-col sm:flex-row gap-4"
                 >
-                    <Button size="lg" className="rounded-full h-12 md:h-14 px-8 text-lg md:text-xl shadow-lg shadow-primary/25 font-bold" asChild>
-                        <Link href="/explore">👉 Explore Your Market</Link>
-                    </Button>
+                    <HeroButtons />
                 </motion.div>
             </div>
         </div>
+    );
+}
+
+function HeroButtons() {
+    const { data: session } = useSession();
+
+    if (session?.user) {
+        return (
+            <>
+                <Button size="lg" className="rounded-full h-12 md:h-14 px-8 text-lg md:text-xl shadow-lg shadow-primary/25 font-bold" asChild>
+                    <Link href="/dashboard">Go to Dashboard</Link>
+                </Button>
+                <Button variant="outline" size="lg" className="rounded-full h-12 md:h-14 px-8 text-lg md:text-xl font-bold border-2" asChild>
+                    <Link href="/explore">Explore Market</Link>
+                </Button>
+            </>
+        );
+    }
+
+    return (
+        <>
+            <Button size="lg" className="rounded-full h-12 md:h-14 px-8 text-lg md:text-xl shadow-lg shadow-primary/25 font-bold" asChild>
+                <Link href="/onboarding">Get Started</Link>
+            </Button>
+            <Button variant="outline" size="lg" className="rounded-full h-12 md:h-14 px-8 text-lg md:text-xl font-bold border-2" asChild>
+                <Link href="/login">Login</Link>
+            </Button>
+        </>
     );
 }
