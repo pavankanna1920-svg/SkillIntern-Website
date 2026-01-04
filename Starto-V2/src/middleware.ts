@@ -40,7 +40,7 @@ export default withAuth(
         // Protect /admin routes AND /api/admin routes
         if (path.startsWith("/admin") || path.startsWith("/api/admin")) {
             const role = (token as any)?.role
-            if (role !== "ADMIN") {
+            if (role?.toUpperCase() !== "ADMIN") {
                 // If trying to access API, return 403 JSON
                 if (path.startsWith("/api/")) {
                     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
