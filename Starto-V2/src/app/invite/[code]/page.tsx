@@ -3,6 +3,7 @@ import { MoveRight, MapPin, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Image from "next/image"; // Assuming Image component availability or use img
+import InviteTracker from "./InviteTracker";
 
 // Define props for Page
 interface InvitePageProps {
@@ -52,8 +53,11 @@ export default async function InvitePage({ params }: InvitePageProps) {
         );
     }
 
-    // 2. Set Attribution Cookie
-    // Using 'await cookies()' for Next.js 15+ compat (if strict) or just cookies()
+    // 2. Set Attribution Cookie (Safe Server Action via Client Component)
+    // We cannot set cookies directly in a Server Component Page in recent Next.js versions without workaround or middleware.
+    // So we use a Client Component to trigger a Server Action.
+
+    /*
     const cookieStore = await cookies();
     cookieStore.set("starto_invite_code", code, {
         httpOnly: true,
@@ -61,6 +65,8 @@ export default async function InvitePage({ params }: InvitePageProps) {
         maxAge: 60 * 60 * 24 * 30, // 30 Days
         path: "/",
     });
+    */
+
 
     const inviter = invite.inviter;
     const role = (inviter.activeRole || inviter.role || "MEMBER").toUpperCase();
@@ -145,6 +151,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
                 <div className="w-6 h-6 bg-foreground rounded-md flex items-center justify-center text-background text-xs">S</div>
                 Starto
             </div>
+            <InviteTracker code={code} />
         </div>
     );
 }
