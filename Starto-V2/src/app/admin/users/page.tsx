@@ -102,32 +102,31 @@ export default function UsersPage() {
     ]
 
     return (
-        <div className="min-h-screen bg-gray-50/50">
+        <div className="min-h-screen bg-black text-white">
             {/* Header */}
-            <header className="bg-white border-b sticky top-0 z-10">
+            <header className="bg-black border-b border-gray-800 sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <AdminMobileNav />
                         <div>
-                            <h1 className="text-xl font-bold text-gray-900">User Management</h1>
-                            <p className="text-sm text-gray-500">View and manage all platform users</p>
+                            <h1 className="text-xl font-bold text-white">User Management</h1>
+                            <p className="text-sm text-gray-400">View and manage all platform users</p>
                         </div>
                     </div>
-                    {/* Placeholder for global actions if needed */}
                 </div>
 
                 {/* Role Tabs */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2">
-                    <div className="flex space-x-1 overflow-x-auto pb-2 scrollbar-hide">
+                    <div className="flex space-x-1 overflow-x-auto pb-2 scrollbar-hide py-2">
                         {roles.map((role) => (
                             <button
                                 key={role.id}
                                 onClick={() => { setActiveTab(role.id); setPage(1); }}
                                 className={`
-                                    px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors
+                                    px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors border
                                     ${activeTab === role.id
-                                        ? "bg-blue-600 text-white shadow-sm"
-                                        : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"}
+                                        ? "bg-white text-black border-white"
+                                        : "bg-black text-gray-400 border-gray-800 hover:border-gray-600 hover:text-white"}
                                 `}
                             >
                                 {role.label}
@@ -140,28 +139,28 @@ export default function UsersPage() {
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
                 {/* Filters Bar */}
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 relative">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div className="relative group">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-white transition-colors">
                             <SearchIcon />
                         </div>
                         <input
                             type="text"
-                            placeholder="Search by name, email, phone..."
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                            placeholder="Search users..."
+                            className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white transition-all text-sm text-white placeholder:text-gray-600"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
 
-                    <div className="flex-1 relative">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <div className="relative group">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-white transition-colors">
                             <FilterIcon />
                         </div>
                         <input
                             type="text"
-                            placeholder="Filter by city, country..."
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                            placeholder="Filter by location..."
+                            className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white transition-all text-sm text-white placeholder:text-gray-600"
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
                         />
@@ -172,86 +171,79 @@ export default function UsersPage() {
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-pulse h-48"></div>
+                            <div key={i} className="bg-gray-900 border border-gray-800 p-6 rounded-xl animate-pulse h-48"></div>
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="bg-red-50 text-red-600 p-4 rounded-lg text-center">
+                    <div className="bg-red-900/20 border border-red-900 text-red-200 p-4 rounded-lg text-center">
                         {error}
                     </div>
                 ) : users.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-xl border border-gray-100 dashed border-2">
+                    <div className="text-center py-20 bg-gray-900/50 rounded-xl border border-gray-800 dashed border-2">
                         <div className="max-w-xs mx-auto text-gray-500">
-                            <p className="text-lg font-medium text-gray-900">No users found</p>
-                            <p>Try adjusting your search or filters to find what you're looking for.</p>
+                            <p className="text-lg font-medium text-white">No users found</p>
+                            <p>Try adjusting your search or filters.</p>
                         </div>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {users.map((user) => (
-                            <div key={user.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 p-5 flex flex-col">
+                            <div key={user.id} className="group bg-gray-900 border border-gray-800 rounded-xl hover:border-gray-600 transition-colors duration-200 p-5 flex flex-col">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-700 font-bold text-lg border border-blue-50">
+                                        <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-lg border border-gray-700 overflow-hidden">
                                             {user.image ? (
-                                                <img src={user.image} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                                                <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 user.name?.[0]?.toUpperCase() || "?"
                                             )}
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-900 line-clamp-1" title={user.name}>{user.name || "Unknown User"}</h3>
-                                            <span className={`
-                                                inline-flex items-center px-2 py-0.5 rounded textxs font-medium mt-1
-                                                ${user.role === 'INVESTOR' ? 'bg-purple-100 text-purple-700' :
-                                                    user.role === 'STARTUP' ? 'bg-blue-100 text-blue-700' :
-                                                        user.role === 'FREELANCER' ? 'bg-orange-100 text-orange-700' :
-                                                            'bg-gray-100 text-gray-700'}
-                                            `}>
+                                            <h3 className="font-semibold text-white line-clamp-1 group-hover:text-blue-400 transition-colors" title={user.name}>{user.name || "Unknown User"}</h3>
+                                            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
                                                 {user.activeRole || user.role || "USER"}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-3 flex-1 text-sm text-gray-600">
+                                <div className="space-y-3 flex-1 text-sm text-gray-400">
                                     <div className="flex items-start gap-2">
-                                        <div className="mt-0.5 text-gray-400 shrink-0"><MapPinIcon /></div>
-                                        <span className="line-clamp-1" title={user.city || "Not set"}>
-                                            {user.city ? `${user.city}, ${user.country}` : <span className="text-gray-400 italic">No location set</span>}
+                                        <div className="mt-0.5 text-gray-600 shrink-0"><MapPinIcon /></div>
+                                        <span className="line-clamp-1 text-gray-300" title={user.city || "Not set"}>
+                                            {user.city ? `${user.city}, ${user.country}` : <span className="text-gray-600 italic">No location set</span>}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="mt-0.5 text-gray-400 shrink-0"><PhoneIcon /></div>
+                                        <div className="mt-0.5 text-gray-600 shrink-0"><PhoneIcon /></div>
                                         {user.phoneNumber ? (
-                                            <a href={`tel:${user.phoneNumber}`} className="text-gray-700 hover:text-blue-600 hover:underline">
+                                            <a href={`tel:${user.phoneNumber}`} className="text-gray-300 hover:text-white hover:underline transition-colors">
                                                 {user.phoneNumber}
                                             </a>
                                         ) : (
-                                            <span className="text-gray-400 italic">No phone available</span>
+                                            <span className="text-gray-600 italic">No phone available</span>
                                         )}
                                     </div>
-                                    <div className="pt-2 border-t border-gray-50 mt-2">
-                                        <p className="text-xs text-gray-400">Email</p>
-                                        <p className="text-gray-700 truncate" title={user.email}>{user.email}</p>
+                                    <div className="pt-3 border-t border-gray-800 mt-2">
+                                        <p className="text-xs text-gray-500 mb-1">Email</p>
+                                        <p className="text-gray-300 truncate" title={user.email}>{user.email}</p>
                                     </div>
                                 </div>
 
-                                <div className="mt-4 pt-3 flex gap-2">
-                                    {/* Action buttons could go here */}
+                                <div className="mt-5 pt-0 flex gap-2">
                                     {user.phoneNumber && (
                                         <a
                                             href={`https://wa.me/${user.phoneNumber.replace(/[^0-9]/g, '')}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex-1 text-center bg-green-50 text-green-700 py-2 rounded-lg text-xs font-medium hover:bg-green-100 transition-colors"
+                                            className="flex-1 text-center bg-gray-800/80 text-green-400 border border-gray-700 py-2 rounded-lg text-xs font-medium hover:bg-green-900/20 hover:border-green-800 hover:text-green-300 transition-all"
                                         >
                                             WhatsApp
                                         </a>
                                     )}
                                     <a
                                         href={`mailto:${user.email}`}
-                                        className="flex-1 text-center bg-gray-50 text-gray-700 py-2 rounded-lg text-xs font-medium hover:bg-gray-100 transition-colors"
+                                        className="flex-1 text-center bg-white text-black py-2 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors"
                                     >
                                         Email
                                     </a>
@@ -263,11 +255,11 @@ export default function UsersPage() {
 
                 {/* Check Pagination */}
                 {meta && meta.totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-4 pt-6">
+                    <div className="flex justify-center items-center gap-4 pt-6 pb-12">
                         <button
                             disabled={page === 1 || loading}
                             onClick={() => setPage(p => p - 1)}
-                            className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm font-medium"
+                            className="px-4 py-2 border border-gray-800 rounded-lg text-white hover:bg-gray-900 disabled:opacity-50 disabled:hover:bg-transparent text-sm font-medium transition-colors"
                         >
                             Previous
                         </button>
@@ -275,7 +267,7 @@ export default function UsersPage() {
                         <button
                             disabled={page >= meta.totalPages || loading}
                             onClick={() => setPage(p => p + 1)}
-                            className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 text-sm font-medium"
+                            className="px-4 py-2 border border-gray-800 rounded-lg text-white hover:bg-gray-900 disabled:opacity-50 disabled:hover:bg-transparent text-sm font-medium transition-colors"
                         >
                             Next
                         </button>
