@@ -1,5 +1,13 @@
 import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-export default function OnboardingPage() {
+export default async function OnboardingPage() {
+    const session = await getServerSession(authOptions);
+
+    if (session?.user && (session.user as any).onboarded) {
+        redirect("/dashboard");
+    }
+
     redirect("/onboarding/role");
 }

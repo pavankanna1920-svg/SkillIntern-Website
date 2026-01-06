@@ -117,6 +117,7 @@ export default function OnboardingProfilePage() {
             });
 
             // Redirect to Dashboard (Flow Complete)
+            router.refresh(); // Update Server Components (like Layout)
             router.push("/dashboard");
         } catch (error: any) {
             console.error(error);

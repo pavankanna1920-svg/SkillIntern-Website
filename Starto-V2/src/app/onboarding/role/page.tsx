@@ -51,6 +51,12 @@ export default function RoleSelectionPage() {
     const { data: session, status, update } = useSession();
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        if (status === "authenticated" && (session?.user as any)?.onboarded) {
+            router.replace("/dashboard");
+        }
+    }, [status, session, router]);
+
     const handleRoleSelect = async (role: string) => {
         setLoading(true);
 

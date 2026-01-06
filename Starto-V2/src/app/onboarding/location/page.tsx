@@ -14,6 +14,12 @@ export default function OnboardingLocationPage() {
     const [selectedLocation, setSelectedLocation] = useState<any>(null);
 
     useEffect(() => {
+        if (status === "authenticated" && (session?.user as any)?.onboarded) {
+            router.replace("/dashboard");
+        }
+    }, [status, session, router]);
+
+    useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/login");
         }
