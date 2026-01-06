@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { AdminMobileNav } from "@/components/admin/AdminMobileNav"
+import { toast } from "sonner" // Assuming sonner is installed/used as per package.json
 
 // --- Types ---
 interface User {
@@ -37,6 +38,12 @@ const PhoneIcon = () => (
 )
 const MapPinIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+)
+const MailIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+)
+const CopyIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
 )
 
 export default function UsersPage() {
@@ -82,6 +89,10 @@ export default function UsersPage() {
             const res = await fetch(`/api/admin/users?${params.toString()}`)
             if (!res.ok) throw new Error("Failed to fetch users")
             const data = await res.json()
+
+            // Client-side sort fallback if needed, but API should sort by createdAt desc
+            data.data.sort((a: User, b: User) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
             setUsers(data.data)
             setMeta(data.meta)
         } catch (err) {
@@ -90,6 +101,18 @@ export default function UsersPage() {
         } finally {
             setLoading(false)
         }
+    }
+
+    const isNewUser = (dateString: string) => {
+        const date = new Date(dateString)
+        const now = new Date()
+        const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+        return diffInHours < 24 // 24 Hours
+    }
+
+    const handleCopyEmail = (email: string) => {
+        navigator.clipboard.writeText(email);
+        toast.success("Email copied to clipboard");
     }
 
     const roles = [
@@ -102,15 +125,15 @@ export default function UsersPage() {
     ]
 
     return (
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen bg-background">
             {/* Header */}
-            <header className="bg-black border-b border-gray-800 sticky top-0 z-10">
+            <header className="bg-background border-b border-border sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <AdminMobileNav />
                         <div>
-                            <h1 className="text-xl font-bold text-white">User Management</h1>
-                            <p className="text-sm text-gray-400">View and manage all platform users</p>
+                            <h1 className="text-xl font-bold text-foreground">User Management</h1>
+                            <p className="text-sm text-muted-foreground">View and manage all platform users</p>
                         </div>
                     </div>
                 </div>
@@ -125,8 +148,8 @@ export default function UsersPage() {
                                 className={`
                                     px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors border
                                     ${activeTab === role.id
-                                        ? "bg-white text-black border-white"
-                                        : "bg-black text-gray-400 border-gray-800 hover:border-gray-600 hover:text-white"}
+                                        ? "bg-foreground text-background border-foreground"
+                                        : "bg-background text-muted-foreground border-border hover:border-foreground/50 hover:text-foreground"}
                                 `}
                             >
                                 {role.label}
@@ -141,26 +164,26 @@ export default function UsersPage() {
                 {/* Filters Bar */}
                 <div className="grid md:grid-cols-2 gap-4">
                     <div className="relative group">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-white transition-colors">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors">
                             <SearchIcon />
                         </div>
                         <input
                             type="text"
                             placeholder="Search users..."
-                            className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white transition-all text-sm text-white placeholder:text-gray-600"
+                            className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-all text-sm text-foreground placeholder:text-muted-foreground"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
 
                     <div className="relative group">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-white transition-colors">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors">
                             <FilterIcon />
                         </div>
                         <input
                             type="text"
                             placeholder="Filter by location..."
-                            className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white transition-all text-sm text-white placeholder:text-gray-600"
+                            className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-all text-sm text-foreground placeholder:text-muted-foreground"
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
                         />
@@ -171,27 +194,33 @@ export default function UsersPage() {
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="bg-gray-900 border border-gray-800 p-6 rounded-xl animate-pulse h-48"></div>
+                            <div key={i} className="bg-card border border-border p-6 rounded-xl animate-pulse h-48"></div>
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="bg-red-900/20 border border-red-900 text-red-200 p-4 rounded-lg text-center">
+                    <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg text-center">
                         {error}
                     </div>
                 ) : users.length === 0 ? (
-                    <div className="text-center py-20 bg-gray-900/50 rounded-xl border border-gray-800 dashed border-2">
-                        <div className="max-w-xs mx-auto text-gray-500">
-                            <p className="text-lg font-medium text-white">No users found</p>
+                    <div className="text-center py-20 bg-muted/30 rounded-xl border border-dashed border-border">
+                        <div className="max-w-xs mx-auto text-muted-foreground">
+                            <p className="text-lg font-medium text-foreground">No users found</p>
                             <p>Try adjusting your search or filters.</p>
                         </div>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {users.map((user) => (
-                            <div key={user.id} className="group bg-gray-900 border border-gray-800 rounded-xl hover:border-gray-600 transition-colors duration-200 p-5 flex flex-col">
+                            <div key={user.id} className="group bg-card border border-border rounded-xl hover:border-foreground/20 transition-all duration-200 p-5 flex flex-col shadow-sm relative overflow-hidden">
+                                {isNewUser(user.createdAt) && (
+                                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm z-10">
+                                        NEW
+                                    </div>
+                                )}
+
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-lg border border-gray-700 overflow-hidden">
+                                        <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-bold text-lg border border-border overflow-hidden">
                                             {user.image ? (
                                                 <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
                                             ) : (
@@ -199,34 +228,43 @@ export default function UsersPage() {
                                             )}
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-white line-clamp-1 group-hover:text-blue-400 transition-colors" title={user.name}>{user.name || "Unknown User"}</h3>
-                                            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors" title={user.name}>{user.name || "Unknown User"}</h3>
+                                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                                 {user.activeRole || user.role || "USER"}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-3 flex-1 text-sm text-gray-400">
+                                <div className="space-y-3 flex-1 text-sm text-muted-foreground">
                                     <div className="flex items-start gap-2">
-                                        <div className="mt-0.5 text-gray-600 shrink-0"><MapPinIcon /></div>
-                                        <span className="line-clamp-1 text-gray-300" title={user.city || "Not set"}>
-                                            {user.city ? `${user.city}, ${user.country}` : <span className="text-gray-600 italic">No location set</span>}
+                                        <div className="mt-0.5 shrink-0"><MapPinIcon /></div>
+                                        <span className="line-clamp-1 text-foreground/80" title={user.city || "Not set"}>
+                                            {user.city ? `${user.city}, ${user.country}` : <span className="text-muted-foreground italic">No location set</span>}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="mt-0.5 text-gray-600 shrink-0"><PhoneIcon /></div>
+                                        <div className="mt-0.5 shrink-0"><PhoneIcon /></div>
                                         {user.phoneNumber ? (
-                                            <a href={`tel:${user.phoneNumber}`} className="text-gray-300 hover:text-white hover:underline transition-colors">
+                                            <a href={`tel:${user.phoneNumber}`} className="text-foreground/80 hover:text-primary hover:underline transition-colors">
                                                 {user.phoneNumber}
                                             </a>
                                         ) : (
-                                            <span className="text-gray-600 italic">No phone available</span>
+                                            <span className="text-muted-foreground italic">No phone available</span>
                                         )}
                                     </div>
-                                    <div className="pt-3 border-t border-gray-800 mt-2">
-                                        <p className="text-xs text-gray-500 mb-1">Email</p>
-                                        <p className="text-gray-300 truncate" title={user.email}>{user.email}</p>
+                                    <div className="pt-3 border-t border-border mt-2 flex items-center gap-2 justify-between group/email">
+                                        <div className="flex items-center gap-2 overflow-hidden">
+                                            <div className="mt-0.5 shrink-0"><MailIcon /></div>
+                                            <p className="text-foreground/80 truncate" title={user.email}>{user.email}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => handleCopyEmail(user.email)}
+                                            className="opacity-0 group-hover/email:opacity-100 p-1 hover:bg-secondary rounded transition-all text-muted-foreground hover:text-foreground"
+                                            title="Copy Email"
+                                        >
+                                            <CopyIcon />
+                                        </button>
                                     </div>
                                 </div>
 
@@ -236,17 +274,19 @@ export default function UsersPage() {
                                             href={`https://wa.me/${user.phoneNumber.replace(/[^0-9]/g, '')}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex-1 text-center bg-gray-800/80 text-green-400 border border-gray-700 py-2 rounded-lg text-xs font-medium hover:bg-green-900/20 hover:border-green-800 hover:text-green-300 transition-all"
+                                            className="flex-1 text-center bg-green-50 text-green-700 border border-green-200 py-2 rounded-lg text-xs font-medium hover:bg-green-100 transition-all dark:bg-green-900/20 dark:text-green-400 dark:border-green-900"
                                         >
                                             WhatsApp
                                         </a>
                                     )}
-                                    <a
-                                        href={`mailto:${user.email}`}
-                                        className="flex-1 text-center bg-white text-black py-2 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors"
-                                    >
-                                        Email
-                                    </a>
+                                    <div className="flex-1 flex gap-1">
+                                        <a
+                                            href={`mailto:${user.email}`}
+                                            className="flex-1 text-center bg-secondary text-secondary-foreground py-2 rounded-lg text-xs font-semibold hover:bg-secondary/80 transition-colors border border-border"
+                                        >
+                                            Email
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -259,15 +299,15 @@ export default function UsersPage() {
                         <button
                             disabled={page === 1 || loading}
                             onClick={() => setPage(p => p - 1)}
-                            className="px-4 py-2 border border-gray-800 rounded-lg text-white hover:bg-gray-900 disabled:opacity-50 disabled:hover:bg-transparent text-sm font-medium transition-colors"
+                            className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-secondary disabled:opacity-50 disabled:hover:bg-transparent text-sm font-medium transition-colors"
                         >
                             Previous
                         </button>
-                        <span className="text-sm text-gray-500">Page {page} of {meta.totalPages}</span>
+                        <span className="text-sm text-muted-foreground">Page {page} of {meta.totalPages}</span>
                         <button
                             disabled={page >= meta.totalPages || loading}
                             onClick={() => setPage(p => p + 1)}
-                            className="px-4 py-2 border border-gray-800 rounded-lg text-white hover:bg-gray-900 disabled:opacity-50 disabled:hover:bg-transparent text-sm font-medium transition-colors"
+                            className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-secondary disabled:opacity-50 disabled:hover:bg-transparent text-sm font-medium transition-colors"
                         >
                             Next
                         </button>

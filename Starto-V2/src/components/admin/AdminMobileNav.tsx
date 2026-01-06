@@ -26,17 +26,17 @@ export function AdminMobileNav() {
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-white hover:text-gray-300">
+                <Button variant="ghost" size="icon" className="md:hidden text-foreground hover:text-foreground/80">
                     <Menu className="h-6 w-6" />
                     <span className="sr-only">Toggle Admin Menu</span>
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 bg-black border-r border-gray-800 w-72 flex flex-col text-white">
+            <SheetContent side="left" className="p-0 bg-background border-r border-border w-72 flex flex-col text-foreground">
                 <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
 
-                <div className="p-6 border-b border-gray-800">
-                    <h1 className="text-xl font-bold text-white">Starto Admin</h1>
-                    <p className="text-sm text-gray-500">Internal Panel</p>
+                <div className="p-6 border-b border-border">
+                    <h1 className="text-xl font-bold text-foreground">Starto Admin</h1>
+                    <p className="text-sm text-muted-foreground">Internal Panel</p>
                 </div>
 
                 <div className="flex-1 p-4 space-y-2 overflow-y-auto">
@@ -47,7 +47,7 @@ export function AdminMobileNav() {
                             <Button
                                 key={item.href}
                                 variant={"ghost"}
-                                className={`w-full justify-start ${isActive ? "bg-white text-black" : "text-gray-400 hover:bg-gray-900 hover:text-white"}`}
+                                className={`w-full justify-start ${isActive ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
                                 asChild
                             >
                                 <Link href={item.href}>
@@ -59,10 +59,10 @@ export function AdminMobileNav() {
                     })}
                 </div>
 
-                <div className="p-4 border-t border-gray-800 space-y-2">
+                <div className="p-4 border-t border-border space-y-2">
                     <Button
                         variant="ghost"
-                        className="w-full justify-start text-blue-400 hover:bg-blue-900/20 hover:text-blue-300"
+                        className="w-full justify-start text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
                         asChild
                     >
                         <Link href="/dashboard">
@@ -73,7 +73,7 @@ export function AdminMobileNav() {
 
                     <Button
                         variant="ghost"
-                        className="w-full justify-start text-red-500 hover:bg-red-900/20 hover:text-red-400"
+                        className="w-full justify-start text-destructive hover:bg-destructive/10"
                         onClick={() => signOut({ callbackUrl: "/" })}
                     >
                         <LogOut className="mr-2 h-4 w-4" />
