@@ -94,9 +94,7 @@ export default function StartupProfilePage({ params }: { params: { id: string } 
                         <section>
                             <h2 className="text-xl font-semibold mb-4">About</h2>
                             <p className="text-muted-foreground leading-relaxed">
-                                We are building the future of {startup.name}. Our mission is to leverage AI and
-                                scalable tech to solve problems for millions of users.
-                                (Placeholder description since it wasn't in the schema, but this makes the UI look real).
+                                {startup.description || startup.oneLiner || "No description provided yet."}
                             </p>
                         </section>
 
