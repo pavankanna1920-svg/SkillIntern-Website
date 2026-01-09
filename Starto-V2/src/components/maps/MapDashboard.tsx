@@ -10,6 +10,11 @@ type NearbyPoint = {
     longitude: number;
     city?: string;
     distance_km?: number;
+    // Description fields
+    bio?: string;
+    oneLiner?: string;
+    description?: string;
+    userId?: string; // For connection
     [k: string]: any;
 };
 
@@ -198,10 +203,33 @@ export default function MapDashboard({
                             {selectedPoint.providerType && <p><strong className="text-muted-foreground">Type:</strong> {selectedPoint.providerType}</p>}
                         </div>
 
+                        {/* Description Section */}
+                        {(selectedPoint.bio || selectedPoint.oneLiner || selectedPoint.description) && (
+                            <div className="mb-2">
+                                <p className="text-xs text-muted-foreground line-clamp-2 italic">
+                                    "{selectedPoint.bio || selectedPoint.oneLiner || selectedPoint.description}"
+                                </p>
+                            </div>
+                        )}
+
+                        {/* View Profile Link */}
+                        <div className="mb-2">
+                            <a
+                                href={`/${role}s/${selectedPoint.id}`}
+                                className="text-xs text-primary hover:underline font-medium flex items-center gap-1"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                View Idea & Profile
+                                <span aria-hidden="true">&rarr;</span>
+                            </a>
+                        </div>
+
+
                         {selectedPoint.distance_km && (
                             <p className="text-xs font-semibold mt-1 mb-2 text-primary">{selectedPoint.distance_km.toFixed(1)} km away</p>
                         )}
-                        <ConnectionButton toUserId={selectedPoint.id} className="w-full text-xs py-1" />
+                        <ConnectionButton toUserId={selectedPoint.userId || selectedPoint.id} className="w-full text-xs py-1" />
                     </div>
                 </InfoWindow>
             )}
