@@ -1,0 +1,255 @@
+
+export const courses = [
+    {
+        id: "full-stack-web-development",
+        title: "Full Stack Web Development",
+        description: "Learn to build dynamic, responsive, and scalable web applications using HTML, CSS, JavaScript, React, and Node.js.",
+        rating: 4.8,
+        reviews: "200+",
+        duration: "120 hours",
+        lessons: "60 lessons",
+        level: "Beginner to Advanced",
+        price: "₹14999",
+        originalPrice: "₹25000",
+        image: "https://images.unsplash.com/photo-1547658719-da2b51169166?q=80&w=1000&auto=format&fit=crop",
+        color: "blue",
+        updatedDate: "7/25/2025",
+        language: "English",
+        tag: "Web Design",
+        features: [
+            "Live Interactive Sessions",
+            "Real-world Projects",
+            "Industry Recognized Certification",
+            "Placement Assistance"
+        ],
+        learningOutcomes: [
+            "Master HTML5, CSS3, and modern JavaScript (ES6+)",
+            "Build responsive layouts with Tailwind CSS and Bootstrap",
+            "Develop dynamic front-end applications using React.js",
+            "Create robust back-end APIs with Node.js and Express",
+            "Manage databases using MongoDB and SQL",
+            "Deploy applications to cloud platforms like AWS and Vercel"
+        ],
+        requirements: [
+            "A computer or laptop with internet connection",
+            "Basic understanding of computer operations",
+            "No prior coding experience required - we start from scratch!",
+            "Dedication and willingness to learn"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: Frontend Fundamentals",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["HTML5 Structure & Semantics", "CSS3 Styling & Flexbox/Grid", "Responsive Design Principles", "JavaScript Basics & DOM Manipulation", "Version Control with Git & GitHub"]
+            },
+            {
+                title: "Module 2: Advanced Frontend with React",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["React.js Core Concepts", "Hooks (useState, useEffect)", "State Management", "Routing with React Router", "API Integration"]
+            },
+            {
+                title: "Module 3: Backend Development",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Node.js Environment", "Express.js Framework", "RESTful API Design", "Authentication & Authorization (JWT)", "Middleware Implementation"]
+            },
+            {
+                title: "Module 4: Database & Deployment",
+                duration: "3 Weeks",
+                lessons: "10 Lessons",
+                content: ["MongoDB & Mongoose", "Database Schema Design", "Deployment Strategies", "CI/CD Pipelines", "Final Capstone Project"]
+            }
+        ],
+        faqs: [
+            {
+                question: "Do I need prior coding experience?",
+                answer: "No, this course is designed for absolute beginners. We start with the basics and gradually move to advanced concepts."
+            },
+            {
+                question: "Is there placement assistance provided?",
+                answer: "Yes, we provide dedicated placement support including resume building, mock interviews, and job referrals upon successful course completion."
+            },
+            {
+                question: "Will I get a certificate?",
+                answer: "Absolutely! You will receive an industry-recognized certificate of completion from SkillIntern after finishing the course and projects."
+            },
+            {
+                question: "How are the classes conducted?",
+                answer: "Classes are a mix of pre-recorded high-quality lectures and live interactive doubt-clearing sessions."
+            }
+        ],
+        testimonials: [
+            {
+                name: "Rahul Sharma",
+                role: "Frontend Developer at Paytm",
+                image: "https://randomuser.me/api/portraits/men/32.jpg",
+                quote: "The Full Stack path at SkillIntern was a game changer. The hands-on projects gave me the confidence to crack my first interview."
+            },
+            {
+                name: "Priya Patel",
+                role: "SDE-1 at Zomato",
+                image: "https://randomuser.me/api/portraits/women/44.jpg",
+                quote: "I loved the structured approach. The mentors were super helpful and the syllabus is exactly what the industry needs right now."
+            }
+        ]
+    },
+    {
+        id: "cyber-security-ethical-hacking",
+        title: "Cyber Security & Ethical Hacking",
+        description: "Protect systems and networks by mastering ethical hacking, penetration testing, and security protocols.",
+        rating: 4.8,
+        reviews: "200+",
+        duration: "120 hours",
+        lessons: "60 lessons",
+        level: "Beginner to Advanced",
+        price: "₹14999",
+        originalPrice: "₹25000",
+        image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1000&auto=format&fit=crop",
+        color: "purple",
+        updatedDate: "7/25/2025",
+        language: "English",
+        tag: "Security",
+        features: ["Live Hacking Labs", "CEH Certification Prep", "Network Security", "Cyber Forensics"],
+        learningOutcomes: ["Understand Ethical Hacking", "Network Scanning", "Vulnerability Assessment", "System Hacking"],
+        requirements: ["Basic IT knowledge", "Laptop with 8GB RAM"],
+        syllabus: [
+            {
+                title: "Module 1: Introduction to Cyber Security",
+                duration: "2 Weeks",
+                lessons: "8 Lessons",
+                content: ["Basics of Networking", "Cyber Laws", "Setting up Lab"]
+            }
+        ],
+        faqs: [],
+        testimonials: []
+    },
+    {
+        id: "android-ios-app-development",
+        title: "Android & iOS App Development",
+        description: "Build powerful native and cross-platform mobile apps using Java, Kotlin, Swift, and Flutter.",
+        rating: 4.8,
+        reviews: "200+",
+        duration: "120 hours",
+        lessons: "60 lessons",
+        level: "Beginner to Advanced",
+        price: "₹14999",
+        originalPrice: "₹25000",
+        image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=1000&auto=format&fit=crop",
+        color: "green",
+        updatedDate: "7/25/2025",
+        language: "English",
+        tag: "App Dev",
+        features: ["Build 10+ Apps", "Publication Support", "Flutter & React Native"],
+        learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+    },
+    {
+        id: "artificial-intelligence-ai",
+        title: "Artificial Intelligence (AI)",
+        description: "Master core AI concepts including neural networks, deep learning, NLP, and computer vision.",
+        rating: 4.8,
+        reviews: "200+",
+        duration: "120 hours",
+        lessons: "60 lessons",
+        level: "Beginner to Advanced",
+        price: "₹14999",
+        originalPrice: "₹25000",
+        image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1000&auto=format&fit=crop",
+        color: "indigo",
+        updatedDate: "7/25/2025",
+        language: "English",
+        tag: "AI",
+        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+    },
+    {
+        id: "digital-marketing",
+        title: "Digital Marketing",
+        description: "Learn to grow brands and businesses using modern marketing strategies, SEO, SEM, and social media.",
+        rating: 4.8,
+        reviews: "200+",
+        duration: "120 hours",
+        lessons: "60 lessons",
+        level: "Beginner to Advanced",
+        price: "₹14999",
+        originalPrice: "₹25000",
+        image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1000&auto=format&fit=crop",
+        color: "orange",
+        updatedDate: "7/25/2025",
+        language: "English",
+        tag: "Marketing",
+        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+    },
+    {
+        id: "data-analytics",
+        title: "Data Analytics",
+        description: "Analyze, visualize, and interpret complex data to drive decisions using Python, SQL, and PowerBI.",
+        rating: 4.8,
+        reviews: "200+",
+        duration: "120 hours",
+        lessons: "60 lessons",
+        level: "Beginner to Advanced",
+        price: "₹14999",
+        originalPrice: "₹25000",
+        image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop",
+        color: "blue",
+        updatedDate: "7/25/2025",
+        language: "English",
+        tag: "Data",
+        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+    },
+    {
+        id: "autocad-catia",
+        title: "AutoCAD & CATIA",
+        description: "Design the future—master AutoCAD & CATIA geometry creation and editing.",
+        rating: 4.8,
+        reviews: "200+",
+        duration: "120 hours",
+        lessons: "60 lessons",
+        level: "Beginner to Advanced",
+        price: "₹14999",
+        originalPrice: "₹25000",
+        image: "https://images.unsplash.com/photo-1581094794329-cd2d2dec5d83?q=80&w=1000&auto=format&fit=crop",
+        color: "red",
+        updatedDate: "7/25/2025",
+        language: "English",
+        tag: "Design",
+        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+    },
+    {
+        id: "aws-cloud-computing",
+        title: "AWS Cloud Computing",
+        description: "Build the cloud—power your future with AWS skills, architecture, and deployment.",
+        rating: 4.8,
+        reviews: "200+",
+        duration: "120 hours",
+        lessons: "60 lessons",
+        level: "Beginner to Advanced",
+        price: "₹14999",
+        originalPrice: "₹25000",
+        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop",
+        color: "blue",
+        updatedDate: "7/25/2025",
+        language: "English",
+        tag: "Cloud",
+        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+    },
+    {
+        id: "hr-analytics-recruitment",
+        title: "HR Analytics & Recruitment",
+        description: "Hire smarter, lead better—unlock the power of HR analytics and talent acquisition.",
+        rating: 4.8,
+        reviews: "200+",
+        duration: "120 hours",
+        lessons: "60 lessons",
+        level: "Beginner to Advanced",
+        price: "₹14999",
+        originalPrice: "₹25000",
+        image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1000&auto=format&fit=crop",
+        color: "purple",
+        updatedDate: "7/25/2025",
+        language: "English",
+        tag: "HR",
+        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+    }
+];
