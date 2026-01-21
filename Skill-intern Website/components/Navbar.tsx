@@ -11,7 +11,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
                     {/* Updated Logo to logo_navbar.png */}
-                    <div className="relative h-24 w-72">
+                    <div className="relative h-24 w-56">
                         <Image
                             src="/images/logo_navbar.png"
                             alt="Inspire AI"
