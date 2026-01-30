@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
     const { searchParams } = new URL(req.url);
@@ -101,13 +103,18 @@ export async function PATCH(req: Request) {
         console.log("[PATCH /api/users/me] Final updateData:", updateData, "User:", targetEmail);
 
         if (Object.keys(updateData).length === 0) {
+            console.log("[PATCH /api/users/me] No changes detected in payload.");
             return NextResponse.json({ success: true, message: "No changes to save" });
         }
+
+        console.log("[PATCH /api/users/me] Updating User:", targetEmail, "Data:", updateData);
 
         const updatedUser = await prisma.user.update({
             where: { email: targetEmail },
             data: updateData
         });
+
+        console.log("[PATCH /api/users/me] User Updated Successfully. Phone:", updatedUser.phoneNumber);
 
         return NextResponse.json({ success: true, user: updatedUser });
     } catch (error: any) {

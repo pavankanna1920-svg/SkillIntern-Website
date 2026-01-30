@@ -10,39 +10,35 @@ import { Card, CardContent } from "@/components/ui/card";
 const roles = [
     {
         id: "startup",
-        title: "I'm a Founder",
-        description: "I want to launch my startup, find a team, and raise capital.",
+        title: "Help for my business",
         icon: Rocket,
         color: "text-primary",
         bg: "bg-primary/5",
-        features: ["Post Jobs", "Raise Funding", "Find Space"],
+        features: ["Shop", "Hotel", "Startup"],
     },
     {
         id: "freelancer",
-        title: "I'm a Freelancer",
-        description: "I want to find premium projects and join startup teams.",
+        title: "I want work",
         icon: Briefcase,
         color: "text-primary",
         bg: "bg-primary/5",
-        features: ["Find Projects", "Get Contracts", "Get Paid"],
+        features: ["Electrician", "Designer", "Worker"],
     },
     {
         id: "investor",
-        title: "I'm an Investor",
-        description: "I want to discover high-growth startups and manage deals.",
+        title: "I want to invest",
         icon: TrendingUp,
         color: "text-primary",
         bg: "bg-primary/5",
-        features: ["View Pitch Decks", "Manage Portfolio", "ROI Tracking"],
+        features: ["Money", "Support"],
     },
     {
         id: "provider",
-        title: "I'm a Provider",
-        description: "I want to list workspace or services for startups.",
+        title: "I have space",
         icon: Building2,
         color: "text-primary",
         bg: "bg-primary/5",
-        features: ["List Properties", "Manage Bookings", "Earn Rent"],
+        features: ["Shop", "Office", "Land"],
     }
 ];
 
@@ -57,30 +53,9 @@ export default function RoleSelectionPage() {
         }
     }, [status, session, router]);
 
-    const handleRoleSelect = async (role: string) => {
-        setLoading(true);
-
-        try {
-            const res = await fetch("/api/onboarding/role", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ role }),
-            });
-
-            if (!res.ok) throw new Error("Failed to set role");
-
-            const data = await res.json();
-
-            // Update session with new activeRole
-            await update({ activeRole: data.activeRole });
-
-            router.push("/onboarding/location");
-        } catch (error) {
-            console.error(error);
-            alert("Something went wrong. Please try again.");
-        } finally {
-            setLoading(false);
-        }
+    const handleRoleSelect = (role: string) => {
+        // Strict Onboarding: No DB write here. Pass intent to next step.
+        router.push(`/onboarding/location?role=${role}`);
     };
 
     useEffect(() => {
@@ -92,19 +67,19 @@ export default function RoleSelectionPage() {
     if (status === "loading" || status === "unauthenticated") return <div className="h-screen flex items-center justify-center">Loading...</div>;
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-background">
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 md:p-8 bg-background">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center mb-12 space-y-4"
+                className="text-center mb-8 md:mb-12 space-y-3"
             >
-                <h1 className="text-4xl font-bold tracking-tight">Welcome to Starto</h1>
-                <p className="text-muted-foreground text-lg max-w-md mx-auto">
-                    How are you planning to use the platform? This will tailor your experience.
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">What do you want?</h1>
+                <p className="text-muted-foreground text-base md:text-lg max-w-md mx-auto">
+                    Simple language for local businesses
                 </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full max-w-4xl">
                 {roles.map((role, index) => (
                     <motion.div
                         key={role.id}
@@ -118,28 +93,26 @@ export default function RoleSelectionPage() {
                             className={`h-full cursor-pointer transition-all duration-300 hover:border-primary hover:shadow-xl group relative overflow-hidden ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                             onClick={() => !loading && handleRoleSelect(role.id)}
                         >
-                            <CardContent className="p-6 md:p-8">
-                                <div className="flex items-start gap-4 mb-6">
-                                    <div className={`p-4 rounded-2xl ${role.bg} group-hover:scale-110 transition-transform`}>
-                                        <role.icon className={`w-8 h-8 ${role.color}`} />
+                            <CardContent className="p-5 md:p-8">
+                                <div className="flex items-center gap-4 mb-4 md:mb-6">
+                                    <div className={`p-3 md:p-4 rounded-2xl ${role.bg} group-hover:scale-110 transition-transform`}>
+                                        <role.icon className={`w-6 h-6 md:w-8 md:h-8 ${role.color}`} />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="font-bold text-2xl mb-2 group-hover:text-primary transition-colors">{role.title}</h3>
-                                        <p className="text-muted-foreground leading-relaxed">{role.description}</p>
+                                        <h3 className="font-bold text-xl md:text-2xl group-hover:text-primary transition-colors">{role.title}</h3>
                                     </div>
                                 </div>
 
-                                <ul className="space-y-3 mb-6">
+                                <ul className="flex flex-wrap gap-2 mb-4 md:mb-6">
                                     {role.features.map((feature, i) => (
-                                        <li key={i} className="flex items-center text-sm text-muted-foreground">
-                                            <span className="w-1.5 h-1.5 bg-primary rounded-full mr-3" />
+                                        <li key={i} className="flex items-center text-xs md:text-sm font-medium bg-secondary/50 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-foreground/80">
                                             {feature}
                                         </li>
                                     ))}
                                 </ul>
 
                                 <div className="flex items-center text-primary font-semibold text-sm">
-                                    Get Started <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    Continue <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </div>
                             </CardContent>
                         </Card>

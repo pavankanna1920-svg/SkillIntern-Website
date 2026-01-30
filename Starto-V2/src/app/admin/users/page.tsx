@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { AdminMobileNav } from "@/components/admin/AdminMobileNav"
 import { toast } from "sonner" // Assuming sonner is installed/used as per package.json
+import { InstantHelpTable } from "@/components/admin/InstantHelpTable"
 
 // --- Types ---
 interface User {
@@ -73,7 +74,9 @@ export default function UsersPage() {
 
     // Fetch Trigger
     useEffect(() => {
-        fetchUsers()
+        if (activeTab !== "INSTANT_HELP") {
+            fetchUsers()
+        }
     }, [page, activeTab, debouncedSearch, debouncedLocation])
 
     async function fetchUsers() {
@@ -117,6 +120,7 @@ export default function UsersPage() {
 
     const roles = [
         { id: "ALL", label: "All Users" },
+        { id: "INSTANT_HELP", label: "🚨 Instant Help" },
         { id: "STARTUP", label: "Startups" },
         { id: "INVESTOR", label: "Investors" },
         { id: "FREELANCER", label: "Freelancers" },
@@ -161,157 +165,163 @@ export default function UsersPage() {
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-                {/* Filters Bar */}
-                <div className="grid md:grid-cols-2 gap-4">
-                    <div className="relative group">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors">
-                            <SearchIcon />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search users..."
-                            className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-all text-sm text-foreground placeholder:text-muted-foreground"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="relative group">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors">
-                            <FilterIcon />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Filter by location..."
-                            className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-all text-sm text-foreground placeholder:text-muted-foreground"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                {/* Users List */}
-                {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="bg-card border border-border p-6 rounded-xl animate-pulse h-48"></div>
-                        ))}
-                    </div>
-                ) : error ? (
-                    <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg text-center">
-                        {error}
-                    </div>
-                ) : users.length === 0 ? (
-                    <div className="text-center py-20 bg-muted/30 rounded-xl border border-dashed border-border">
-                        <div className="max-w-xs mx-auto text-muted-foreground">
-                            <p className="text-lg font-medium text-foreground">No users found</p>
-                            <p>Try adjusting your search or filters.</p>
-                        </div>
-                    </div>
+                {activeTab === "INSTANT_HELP" ? (
+                    <InstantHelpTable />
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {users.map((user) => (
-                            <div key={user.id} className="group bg-card border border-border rounded-xl hover:border-foreground/20 transition-all duration-200 p-5 flex flex-col shadow-sm relative overflow-hidden">
-                                {isNewUser(user.createdAt) && (
-                                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm z-10">
-                                        NEW
-                                    </div>
-                                )}
-
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-bold text-lg border border-border overflow-hidden">
-                                            {user.image ? (
-                                                <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                user.name?.[0]?.toUpperCase() || "?"
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors" title={user.name}>{user.name || "Unknown User"}</h3>
-                                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                                {user.activeRole || user.role || "USER"}
-                                            </span>
-                                        </div>
-                                    </div>
+                    <>
+                        {/* Filters Bar */}
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div className="relative group">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors">
+                                    <SearchIcon />
                                 </div>
+                                <input
+                                    type="text"
+                                    placeholder="Search users..."
+                                    className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-all text-sm text-foreground placeholder:text-muted-foreground"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                />
+                            </div>
 
-                                <div className="space-y-3 flex-1 text-sm text-muted-foreground">
-                                    <div className="flex items-start gap-2">
-                                        <div className="mt-0.5 shrink-0"><MapPinIcon /></div>
-                                        <span className="line-clamp-1 text-foreground/80" title={user.city || "Not set"}>
-                                            {user.city ? `${user.city}, ${user.country}` : <span className="text-muted-foreground italic">No location set</span>}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="mt-0.5 shrink-0"><PhoneIcon /></div>
-                                        {user.phoneNumber ? (
-                                            <a href={`tel:${user.phoneNumber}`} className="text-foreground/80 hover:text-primary hover:underline transition-colors">
-                                                {user.phoneNumber}
-                                            </a>
-                                        ) : (
-                                            <span className="text-muted-foreground italic">No phone available</span>
-                                        )}
-                                    </div>
-                                    <div className="pt-3 border-t border-border mt-2 flex items-center gap-2 justify-between group/email">
-                                        <div className="flex items-center gap-2 overflow-hidden">
-                                            <div className="mt-0.5 shrink-0"><MailIcon /></div>
-                                            <p className="text-foreground/80 truncate" title={user.email}>{user.email}</p>
-                                        </div>
-                                        <button
-                                            onClick={() => handleCopyEmail(user.email)}
-                                            className="opacity-0 group-hover/email:opacity-100 p-1 hover:bg-secondary rounded transition-all text-muted-foreground hover:text-foreground"
-                                            title="Copy Email"
-                                        >
-                                            <CopyIcon />
-                                        </button>
-                                    </div>
+                            <div className="relative group">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors">
+                                    <FilterIcon />
                                 </div>
+                                <input
+                                    type="text"
+                                    placeholder="Filter by location..."
+                                    className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring focus:border-input transition-all text-sm text-foreground placeholder:text-muted-foreground"
+                                    value={location}
+                                    onChange={(e) => setLocation(e.target.value)}
+                                />
+                            </div>
+                        </div>
 
-                                <div className="mt-5 pt-0 flex gap-2">
-                                    {user.phoneNumber && (
-                                        <a
-                                            href={`https://wa.me/${user.phoneNumber.replace(/[^0-9]/g, '')}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex-1 text-center bg-green-50 text-green-700 border border-green-200 py-2 rounded-lg text-xs font-medium hover:bg-green-100 transition-all dark:bg-green-900/20 dark:text-green-400 dark:border-green-900"
-                                        >
-                                            WhatsApp
-                                        </a>
-                                    )}
-                                    <div className="flex-1 flex gap-1">
-                                        <a
-                                            href={`mailto:${user.email}`}
-                                            className="flex-1 text-center bg-secondary text-secondary-foreground py-2 rounded-lg text-xs font-semibold hover:bg-secondary/80 transition-colors border border-border"
-                                        >
-                                            Email
-                                        </a>
-                                    </div>
+                        {/* Users List */}
+                        {loading ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[1, 2, 3, 4, 5, 6].map((i) => (
+                                    <div key={i} className="bg-card border border-border p-6 rounded-xl animate-pulse h-48"></div>
+                                ))}
+                            </div>
+                        ) : error ? (
+                            <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg text-center">
+                                {error}
+                            </div>
+                        ) : users.length === 0 ? (
+                            <div className="text-center py-20 bg-muted/30 rounded-xl border border-dashed border-border">
+                                <div className="max-w-xs mx-auto text-muted-foreground">
+                                    <p className="text-lg font-medium text-foreground">No users found</p>
+                                    <p>Try adjusting your search or filters.</p>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                )}
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {users.map((user) => (
+                                    <div key={user.id} className="group bg-card border border-border rounded-xl hover:border-foreground/20 transition-all duration-200 p-5 flex flex-col shadow-sm relative overflow-hidden">
+                                        {isNewUser(user.createdAt) && (
+                                            <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm z-10">
+                                                NEW
+                                            </div>
+                                        )}
 
-                {/* Check Pagination */}
-                {meta && meta.totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-4 pt-6 pb-12">
-                        <button
-                            disabled={page === 1 || loading}
-                            onClick={() => setPage(p => p - 1)}
-                            className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-secondary disabled:opacity-50 disabled:hover:bg-transparent text-sm font-medium transition-colors"
-                        >
-                            Previous
-                        </button>
-                        <span className="text-sm text-muted-foreground">Page {page} of {meta.totalPages}</span>
-                        <button
-                            disabled={page >= meta.totalPages || loading}
-                            onClick={() => setPage(p => p + 1)}
-                            className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-secondary disabled:opacity-50 disabled:hover:bg-transparent text-sm font-medium transition-colors"
-                        >
-                            Next
-                        </button>
-                    </div>
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-bold text-lg border border-border overflow-hidden">
+                                                    {user.image ? (
+                                                        <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        user.name?.[0]?.toUpperCase() || "?"
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors" title={user.name}>{user.name || "Unknown User"}</h3>
+                                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                                        {user.activeRole || user.role || "USER"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3 flex-1 text-sm text-muted-foreground">
+                                            <div className="flex items-start gap-2">
+                                                <div className="mt-0.5 shrink-0"><MapPinIcon /></div>
+                                                <span className="line-clamp-1 text-foreground/80" title={user.city || "Not set"}>
+                                                    {user.city ? `${user.city}, ${user.country}` : <span className="text-muted-foreground italic">No location set</span>}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="mt-0.5 shrink-0"><PhoneIcon /></div>
+                                                {user.phoneNumber ? (
+                                                    <a href={`tel:${user.phoneNumber}`} className="text-foreground/80 hover:text-primary hover:underline transition-colors">
+                                                        {user.phoneNumber}
+                                                    </a>
+                                                ) : (
+                                                    <span className="text-muted-foreground italic">No phone available</span>
+                                                )}
+                                            </div>
+                                            <div className="pt-3 border-t border-border mt-2 flex items-center gap-2 justify-between group/email">
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <div className="mt-0.5 shrink-0"><MailIcon /></div>
+                                                    <p className="text-foreground/80 truncate" title={user.email}>{user.email}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleCopyEmail(user.email)}
+                                                    className="opacity-0 group-hover/email:opacity-100 p-1 hover:bg-secondary rounded transition-all text-muted-foreground hover:text-foreground"
+                                                    title="Copy Email"
+                                                >
+                                                    <CopyIcon />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-5 pt-0 flex gap-2">
+                                            {user.phoneNumber && (
+                                                <a
+                                                    href={`https://wa.me/${user.phoneNumber.replace(/[^0-9]/g, '')}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex-1 text-center bg-green-50 text-green-700 border border-green-200 py-2 rounded-lg text-xs font-medium hover:bg-green-100 transition-all dark:bg-green-900/20 dark:text-green-400 dark:border-green-900"
+                                                >
+                                                    WhatsApp
+                                                </a>
+                                            )}
+                                            <div className="flex-1 flex gap-1">
+                                                <a
+                                                    href={`mailto:${user.email}`}
+                                                    className="flex-1 text-center bg-secondary text-secondary-foreground py-2 rounded-lg text-xs font-semibold hover:bg-secondary/80 transition-colors border border-border"
+                                                >
+                                                    Email
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Check Pagination */}
+                        {meta && meta.totalPages > 1 && (
+                            <div className="flex justify-center items-center gap-4 pt-6 pb-12">
+                                <button
+                                    disabled={page === 1 || loading}
+                                    onClick={() => setPage(p => p - 1)}
+                                    className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-secondary disabled:opacity-50 disabled:hover:bg-transparent text-sm font-medium transition-colors"
+                                >
+                                    Previous
+                                </button>
+                                <span className="text-sm text-muted-foreground">Page {page} of {meta.totalPages}</span>
+                                <button
+                                    disabled={page >= meta.totalPages || loading}
+                                    onClick={() => setPage(p => p + 1)}
+                                    className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-secondary disabled:opacity-50 disabled:hover:bg-transparent text-sm font-medium transition-colors"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </main>
         </div>

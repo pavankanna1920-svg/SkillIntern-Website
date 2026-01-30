@@ -42,6 +42,7 @@ export default withAuth(
         // Protect /admin routes AND /api/admin routes
         if (path.startsWith("/admin") || path.startsWith("/api/admin")) {
             const role = (token as any)?.role
+            console.log("Middleware Admin Check:", { path, role, email: token?.email }); // DEBUG LOG
             if (role?.toUpperCase() !== "ADMIN") {
                 // If trying to access API, return 403 JSON
                 if (path.startsWith("/api/")) {

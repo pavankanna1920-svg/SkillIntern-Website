@@ -1,75 +1,59 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { MapPin } from "lucide-react";
 import LocationSelector from "@/components/location/LocationSelector";
 import { toast } from "sonner";
 
-export default function OnboardingLocationPage() {
-    const { data: session, status, update } = useSession();
+function LocationContent() {
+    const { data: session, status } = useSession();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState<any>(null);
 
-    useEffect(() => {
-        if (status === "authenticated" && (session?.user as any)?.onboarded) {
-            router.replace("/dashboard");
-        }
-    }, [status, session, router]);
+    // Get Role from URL safely
+    const searchParams = useSearchParams();
+    const role = searchParams.get("role");
 
     useEffect(() => {
-        if (status === "unauthenticated") {
-            router.push("/login");
-        }
-    }, [status, router]);
+        // Wait for auth to settle
+        if (status === "loading") return;
 
-    const handleContinue = async () => {
+        if (!role && status === "authenticated") {
+            // Fallback: If no role in URL, kick back
+            // Using setTimeout to allow hydration to complete potentially
+            console.warn("No role found in URL, redirecting to role selection.");
+            router.replace("/onboarding/role");
+        }
+    }, [role, status, router]);
+
+    const handleContinue = () => {
         if (!selectedLocation?.city || !selectedLocation?.latitude) {
             toast.error("Please select a valid location to continue.");
             return;
         }
 
-        setLoading(true);
-        try {
-            // Update User Location
-            const res = await fetch("/api/users/me", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    latitude: selectedLocation.latitude,
-                    longitude: selectedLocation.longitude,
-                    city: selectedLocation.city,
-                    state: selectedLocation.state,
-                    country: selectedLocation.country,
-                    pincode: selectedLocation.pincode,
-                    // address: selectedLocation.address // Optional, if you want to save exact address
-                })
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData.error || `Failed to save location: ${res.status}`);
-            }
-
-            // Update session
-            await update({
-                latitude: selectedLocation.latitude,
-                longitude: selectedLocation.longitude,
-                city: selectedLocation.city
-            });
-
-            // Redirect to Profile Step (Core Flow Reordered)
-            router.push("/onboarding/profile");
-            toast.success("All set! Welcome to Starto.");
-
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to save location. Please try again.");
-        } finally {
-            setLoading(false);
+        if (!role) {
+            toast.error("Role missing. Please restart onboarding.");
+            router.push("/onboarding/role");
+            return;
         }
+
+        setLoading(true);
+        // Pass everything to Profile Step
+        // URL Encode the location data
+        const params = new URLSearchParams();
+        params.set("role", role);
+        params.set("lat", selectedLocation.latitude.toString());
+        params.set("lng", selectedLocation.longitude.toString());
+        params.set("city", selectedLocation.city || "");
+        params.set("state", selectedLocation.state || "");
+        params.set("country", selectedLocation.country || "");
+        params.set("pincode", selectedLocation.pincode || "");
+
+        router.push(`/onboarding/profile?${params.toString()}`);
     };
 
     if (status === "loading") return <div className="h-screen flex items-center justify-center">Loading...</div>;
@@ -103,5 +87,13 @@ export default function OnboardingLocationPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function OnboardingLocationPage() {
+    return (
+        <Suspense fallback={<div className="h-screen flex items-center justify-center">Loading...</div>}>
+            <LocationContent />
+        </Suspense>
     );
 }

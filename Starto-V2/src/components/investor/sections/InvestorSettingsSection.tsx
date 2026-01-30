@@ -19,6 +19,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import LocationSearchInput from "@/components/common/LocationSearchInput";
 
+import { ROLE_LABELS } from "@/lib/ui-mapping";
+
 export function InvestorSettingsSection() {
     const { data: session } = useSession();
     const { dbUser, isLoading } = useUser();
@@ -28,6 +30,7 @@ export function InvestorSettingsSection() {
     const [formData, setFormData] = useState({
         firmName: "",
         website: "",
+        phoneNumber: "",
         bio: "",
         ticketSize: "",
         sectors: "",
@@ -46,6 +49,7 @@ export function InvestorSettingsSection() {
             setFormData({
                 firmName: dbUser.name || "",
                 website: "",
+                phoneNumber: dbUser.phoneNumber || "",
                 bio: dbUser.investorProfile.thesisNote || "",
                 ticketSize: "",
                 sectors: (dbUser.investorProfile.sectors || []).join(", "),
@@ -84,8 +88,7 @@ export function InvestorSettingsSection() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     email: session?.user?.email,
-                    name: formData.firmName, // Assuming Firm Name is the User Name for investors? Or just Profile name?
-                    // Previously we mapped Firm Name to Name. Let's keep that pattern.
+                    name: formData.firmName,
                     latitude: formData.latitude,
                     longitude: formData.longitude,
                     city: formData.city,
@@ -102,11 +105,14 @@ export function InvestorSettingsSection() {
                 body: JSON.stringify({
                     email: session?.user?.email,
                     role: "investor",
+                    userDetails: {
+                        name: formData.firmName,
+                        phoneNumber: formData.phoneNumber
+                    },
                     data: {
                         name: formData.firmName,
                         thesisNote: formData.bio,
                         sectors: formData.sectors.split(",").map(s => s.trim()).filter(Boolean),
-                        // Profile specific location fields
                         city: formData.city,
                         address: formData.address || formData.location
                     }
@@ -124,13 +130,22 @@ export function InvestorSettingsSection() {
 
     if (isLoading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>;
 
+    // Derived Label for Role
+    const activeRole = ((session?.user as any)?.activeRole || "INVESTOR").toUpperCase();
+    const roleLabel = ROLE_LABELS[activeRole] || activeRole;
+
     return (
         <div className="space-y-6">
             <div>
-                <h3 className="text-2xl font-bold tracking-tight">Investor Settings</h3>
-                <p className="text-sm text-muted-foreground">
-                    Manage your investment profile, preferences, and account security.
-                </p>
+                <h3 className="text-2xl font-bold tracking-tight">Settings</h3>
+                <div className="flex items-center gap-2 mt-1">
+                    <p className="text-sm text-muted-foreground mr-2">
+                        Manage your investment profile and preferences.
+                    </p>
+                    <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+                        {roleLabel}
+                    </div>
+                </div>
             </div>
 
             <Tabs defaultValue="profile" className="space-y-4">
@@ -142,7 +157,7 @@ export function InvestorSettingsSection() {
                 <TabsContent value="profile" className="space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Investment Profile</CardTitle>
+                            <CardTitle>Investment Details</CardTitle>
                             <CardDescription>
                                 This information helps Startups understand your investment focus.
                             </CardDescription>
@@ -164,6 +179,15 @@ export function InvestorSettingsSection() {
                                         placeholder="https://..."
                                         value={formData.website}
                                         onChange={e => setFormData({ ...formData, website: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="phoneNumber">WhatsApp Number</Label>
+                                    <Input
+                                        id="phoneNumber"
+                                        value={formData.phoneNumber || ""}
+                                        onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                        placeholder="+91 98765 43210"
                                     />
                                 </div>
                             </div>

@@ -18,6 +18,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import LocationSearchInput from "@/components/common/LocationSearchInput";
 
+import { ROLE_LABELS } from "@/lib/ui-mapping";
+
 export function ProviderSettingsSection() {
     const { data: session } = useSession();
     const { dbUser, isLoading } = useUser();
@@ -27,6 +29,7 @@ export function ProviderSettingsSection() {
     const [formData, setFormData] = useState({
         spaceName: "",
         website: "",
+        phoneNumber: "",
         description: "",
         amenities: "",
         location: "",
@@ -44,6 +47,7 @@ export function ProviderSettingsSection() {
             setFormData({
                 spaceName: dbUser.providerProfile.companyName || "",
                 website: "",
+                phoneNumber: dbUser.phoneNumber || "",
                 description: dbUser.providerProfile.description || "",
                 amenities: "",
                 location: dbUser.city || "",
@@ -81,13 +85,6 @@ export function ProviderSettingsSection() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     email: session?.user?.email,
-                    // Provider 'spaceName' might NOT be the User Name? 
-                    // Usually Provider user name is personal name.
-                    // But here we only have spaceName in form. 
-                    // Let's check Onboarding Form. ProviderForm has 'name' AND 'companyName'.
-                    // ProviderSettingsSection only has 'spaceName' (mapped to companyName).
-                    // So we probably shouldn't update User Name here unless we add a Name field.
-                    // BUT for Location, we definitely update User.
                     latitude: formData.latitude,
                     longitude: formData.longitude,
                     city: formData.city,
@@ -104,6 +101,9 @@ export function ProviderSettingsSection() {
                 body: JSON.stringify({
                     email: session?.user?.email,
                     role: "provider",
+                    userDetails: {
+                        phoneNumber: formData.phoneNumber
+                    },
                     data: {
                         companyName: formData.spaceName,
                         description: formData.description,
@@ -125,28 +125,34 @@ export function ProviderSettingsSection() {
 
     if (isLoading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>;
 
+    // Derived Label for Role
+    const activeRole = ((session?.user as any)?.activeRole || "PROVIDER").toUpperCase();
+    const roleLabel = ROLE_LABELS[activeRole] || activeRole;
+
     return (
         <div className="space-y-6">
             <div>
-                <h3 className="text-2xl font-bold tracking-tight">Provider Settings</h3>
-                <p className="text-sm text-muted-foreground">
-                    Manage your detailed workspace profile, payout preferences, and account security.
-                </p>
+                <h3 className="text-2xl font-bold tracking-tight">Settings</h3>
+                <div className="flex items-center gap-2 mt-1">
+                    <p className="text-sm text-muted-foreground mr-2">
+                        Manage your detailed workspace profile and preferences.
+                    </p>
+                    <div className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+                        {roleLabel}
+                    </div>
+                </div>
             </div>
 
             <Tabs defaultValue="general" className="space-y-4">
                 <TabsList>
                     <TabsTrigger value="general">Profile & Space Info</TabsTrigger>
-                    {/* Hiding Mock Tabs */}
-                    {/* <TabsTrigger value="payouts">Payouts & Billing</TabsTrigger> */}
-                    {/* <TabsTrigger value="notifications">Notifications</TabsTrigger> */}
                 </TabsList>
 
                 {/* GENERAL SETTINGS */}
                 <TabsContent value="general" className="space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Workspace Profile</CardTitle>
+                            <CardTitle>Space Details</CardTitle>
                             <CardDescription>
                                 This information will be displayed on your listing pages.
                             </CardDescription>
@@ -168,6 +174,15 @@ export function ProviderSettingsSection() {
                                         placeholder="https://..."
                                         value={formData.website}
                                         onChange={e => setFormData({ ...formData, website: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="phoneNumber">WhatsApp Number</Label>
+                                    <Input
+                                        id="phoneNumber"
+                                        value={formData.phoneNumber || ""}
+                                        onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                        placeholder="+91 98765 43210"
                                     />
                                 </div>
                             </div>

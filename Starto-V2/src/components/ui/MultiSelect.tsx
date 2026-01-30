@@ -10,6 +10,7 @@ interface MultiSelectProps {
     placeholder?: string;
     label?: string;
     maxSelect?: number;
+    allowCustom?: boolean;
 }
 
 export default function MultiSelect({
@@ -19,6 +20,7 @@ export default function MultiSelect({
     placeholder = "Select items...",
     label,
     maxSelect,
+    allowCustom = false,
 }: MultiSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState("");
@@ -95,8 +97,8 @@ export default function MultiSelect({
                                 <div
                                     key={opt}
                                     className={`p-3 cursor-pointer flex items-center justify-between text-sm transition-colors ${selected.includes(opt)
-                                            ? "bg-primary/10 text-primary"
-                                            : "text-foreground hover:bg-muted"
+                                        ? "bg-primary/10 text-primary"
+                                        : "text-foreground hover:bg-muted"
                                         }`}
                                     onClick={() => toggleSelection(opt)}
                                 >
@@ -108,11 +110,17 @@ export default function MultiSelect({
                             <div className="p-3 text-muted-foreground text-sm text-center">No results found.</div>
                         )}
 
-                        {/* Custom Entry Option - Keep it strict for now? 
-                User Plan said "Validated string arrays". 
-                "validated against constants.ts" => implies NO custom entry.
-                Strict Enum-like behavior for strings. OK.
-            */}
+                        {allowCustom && search.trim().length > 0 && !filteredOptions.includes(search) && !selected.includes(search) && (
+                            <div
+                                className="p-3 cursor-pointer flex items-center gap-2 text-sm text-primary hover:bg-primary/10 border-t border-border"
+                                onClick={() => {
+                                    toggleSelection(search);
+                                    setSearch("");
+                                }}
+                            >
+                                <span className="font-semibold">+ Add "{search}"</span>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

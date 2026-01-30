@@ -1,761 +1,445 @@
 "use client";
 
-import MapContainer from "@/components/map/MapContainer";
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Loader2, RefreshCw, Sparkles, Lightbulb, LogOut, LayoutDashboard, User, ChevronDown } from "lucide-react";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Autocomplete, useJsApiLoader, Marker } from "@react-google-maps/api";
-import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-
+import { MapPin, Search, TrendingUp, AlertTriangle, Users, Sparkles, DollarSign, Store, X, ArrowRight, Activity } from "lucide-react";
+import LocationSearchInput from "@/components/common/LocationSearchInput";
+import { motion, AnimatePresence } from "framer-motion";
+import { analyzeBusiness, AnalysisResult } from "@/lib/business-analyzer";
+import MapContainer from "@/components/map/MapContainer";
+import { useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
 import { startoMapStyle } from "@/components/map/startoMapStyle";
-import { EcosystemMarkers } from "@/components/map/EcosystemMarkers";
+import { useTheme } from "next-themes"; // For Light/Dark Map Style handling
+import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { LimitReachedModal } from "@/components/explore/LimitReachedModal";
 
-const LIBRARIES: ("places")[] = ["places"];
-
-// [ICONS] Copied from EcosystemMarkers to ensure visual consistency in Legend
-const LEGEND_ICONS = {
-    startup: <path d="M3 21h18M5 21V7l8-4 8 4v14M6 10h2v2H6v-2zm0 4h2v2H6v-2zm0 4h2v2H6v-2zm4-8h2v2h-2v-2zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-8h2v2h-2v-2zm0 4h2v2h-2v-2z" />,
-    investor: <path d="M20 7h-4V4c0-1.103-.897-2-2-2h-4c-1.103 0-2 .897-2 2v3H4c-1.103 0-2 .897-2 2v10c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V9c0-1.103-.897-2-2-2zM10 4h4v3h-4V4zm-6 5h16v10H4V9z" />,
-    space: <path d="M12 2C7.589 2 4 5.589 4 9.995 3.971 16.44 11.696 21.784 12 22c0 0 8.029-5.56 8-12 0-4.411-3.589-8-8-8zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" />,
-    freelancer: <path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z" />
-};
-
-const LEGEND_COLORS = {
-    startup: "#a78bfa",
-    investor: "#4ade80",
-    space: "#fb923c",
-    freelancer: "#22d3ee"
-};
-
-// Analysis Type interface
-interface AnalysisResult {
-    competition: string;
-    demand: string;
-    risk: string;
-    score: number;
-    analysisType: string;
-    ecosystem: {
-        coworking: number;
-        investors: number;
-        startups: number;
-    };
-    reasons: string[];
-    industryInsight: string;
-}
+const libraries: "places"[] = ["places"];
 
 export default function ExplorePage() {
+
+    const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
     const { isLoaded } = useJsApiLoader({
         id: "starto-map-script",
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-        libraries: LIBRARIES
+        googleMapsApiKey: key,
+        libraries
     });
 
-    // --- State ---
-    const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
-    const [selectedLocation, setSelectedLocation] = useState<{ lat: number, lng: number, address: string } | null>(null);
-    const [industry, setIndustry] = useState<string>("");
-    const [budget, setBudget] = useState<string>("medium");
+    const { theme } = useTheme();
+    const { data: session } = useSession();
+    const searchParams = useSearchParams();
 
-    const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [geocoding, setGeocoding] = useState(false);
-    const [trialsLeft, setTrialsLeft] = useState<number>(3);
-    const [showLoginOverlay, setShowLoginOverlay] = useState(false);
+    // --- State ---
+    const [showLimitModal, setShowLimitModal] = useState(false);
+    const [step, setStep] = useState<"input" | "analyzing" | "result">("input");
+
+    // Handle URL Params (from Homepage)
+    useEffect(() => {
+        const query = searchParams.get("search");
+        if (query) {
+            setDomain(query);
+            // Optional: You could auto-trigger analyze here if location was pre-filled or defaulted.
+        }
+    }, [searchParams]);
+
+    // Inputs
+    const [location, setLocation] = useState<{ address: string, lat: number, lng: number } | null>(null);
+    const [domain, setDomain] = useState("");
+    const [budget, setBudget] = useState("Medium");
+
+    // Analysis
+    const [result, setResult] = useState<AnalysisResult | null>(null);
+    const [realCompetitors, setRealCompetitors] = useState<any[]>([]); // Store real places
+    const [selectedCompetitor, setSelectedCompetitor] = useState<any | null>(null); // For InfoWindow
+
+    // Map State
+    const [mapCenter, setMapCenter] = useState({ lat: 12.9716, lng: 77.5946 });
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
-    const { data: session } = useSession();
-
-    // --- Refs ---
-    const mapRef = useRef<google.maps.Map | null>(null);
-    const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-    const isMounted = useRef(false);
-
+    // Sync map with location selection
     useEffect(() => {
-        isMounted.current = true;
-        return () => { isMounted.current = false; };
-    }, []);
-
-    // --- Options ---
-    const INDUSTRIES = [
-        "SaaS / Software", "Fintech", "E-commerce", "HealthTech", "EdTech",
-        "Retail / Food", "Manufacturing", "Real Estate", "Logistics"
-    ];
-
-    // --- Init ---
-    useEffect(() => {
-        const attempts = localStorage.getItem("starto_trials");
-        if (attempts) {
-            const used = parseInt(attempts);
-            setTrialsLeft(Math.max(0, 3 - used));
+        if (location) {
+            setMapCenter({ lat: location.lat, lng: location.lng });
         }
-    }, []);
+    }, [location]);
 
-    // --- Handlers ---
-
-    const handleMapLoad = useCallback((map: google.maps.Map) => {
-        mapRef.current = map;
-        setMapInstance(map);
-    }, []);
-
-    const handleMapClick = async (e: google.maps.MapMouseEvent) => {
-        if (!e.latLng) return;
-        const lat = e.latLng.lat();
-        const lng = e.latLng.lng();
-
-        setGeocoding(true);
-        setSelectedLocation({ lat, lng, address: "Fetching address..." });
-        setMapCenter({ lat, lng });
-
-        try {
-            const geocoder = new google.maps.Geocoder();
-            const response = await geocoder.geocode({ location: { lat, lng } });
-
-            // Priority: Sublocality > Locality > Administrative Level 2
-            const bestResult = response.results.find(r =>
-                r.types.includes("sublocality") ||
-                r.types.includes("locality") ||
-                r.types.includes("administrative_area_level_2")
-            );
-
-            if (bestResult) {
-                // Use the clearer address (e.g. "Indiranagar, Bengaluru")
-                const parts = bestResult.formatted_address.split(",");
-                const shortAddress = parts.length > 2 ? parts.slice(0, 2).join(",") : bestResult.formatted_address;
-                setSelectedLocation({ lat, lng, address: shortAddress });
-            } else if (response.results[0]) {
-                // Fallback to whatever we have (but try to skip street numbers)
-                const address = response.results[0].formatted_address;
-                // Heuristic: If starts with a number, maybe strip it? 
-                // Better: just take the 2nd and 3rd part if it looks like a street address.
-                const parts = address.split(",");
-                const shortAddress = parts.length > 2 ? parts.slice(1, 3).join(",") : address;
-                setSelectedLocation({ lat, lng, address: shortAddress });
-            } else {
-                setSelectedLocation({ lat, lng, address: `${lat.toFixed(4)}, ${lng.toFixed(4)} ` });
-            }
-        } catch (error) {
-            console.error("Geocoding failed", error);
-            setSelectedLocation({ lat, lng, address: "Selected Location" });
-        } finally {
-            setGeocoding(false);
-        }
-    };
-
-    const onLoadAutocomplete = (autocomplete: google.maps.places.Autocomplete) => {
-        autocompleteRef.current = autocomplete;
-    };
-
-    const onPlaceChanged = () => {
-        if (autocompleteRef.current) {
-            const place = autocompleteRef.current.getPlace();
-            if (!place || !place.geometry || !place.geometry.location) return;
-
-            const lat = place.geometry.location.lat();
-            const lng = place.geometry.location.lng();
-
-            setMapCenter({ lat, lng });
-            setSelectedLocation({
-                lat,
-                lng,
-                address: place.formatted_address || place.name || "Selected Location"
-            });
-        }
-    };
+    // --- Actions ---
 
     const handleAnalyze = async () => {
-        // If logged in, bypass all checks
-        if (!session && trialsLeft <= 0) {
-            setShowLoginOverlay(true);
-            return;
+        if (!domain || !location) return;
+
+        // --- LIMIT CHECK ---
+        if (!session) {
+            const count = parseInt(localStorage.getItem("explore_trials") || "0");
+            if (count >= 3) {
+                setShowLimitModal(true);
+                return;
+            }
+            localStorage.setItem("explore_trials", (count + 1).toString());
         }
 
-        if (!selectedLocation || !selectedLocation.lat || !industry) {
-            toast.error("Please search and select a location from the dropdown");
-            return;
-        }
+        setStep("analyzing");
+        setRealCompetitors([]); // Clear old
 
-        if (!mapInstance) {
-            toast.error("Map not ready. Please wait.");
-            return;
-        }
-
-        setLoading(true);
-
-        try {
+        // 1. Trigger Real Google Places Search if Map is Ready
+        if (mapInstance && window.google) {
             const service = new google.maps.places.PlacesService(mapInstance);
-            const location = new google.maps.LatLng(selectedLocation.lat, selectedLocation.lng);
-            const radius = 2000;
-
-            const getCount = (keyword: string) => {
-                return new Promise<number>((resolve) => {
-                    service.nearbySearch({ location, radius, keyword }, (results, status) => {
-                        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-                            resolve(results.length);
-                        } else {
-                            resolve(0);
-                        }
-                    });
-                });
+            const request = {
+                location: new google.maps.LatLng(location.lat, location.lng),
+                radius: 1500, // 1.5km radius
+                keyword: domain // e.g. "Chai Shop"
             };
 
-            const [techCount, coworkingCount, investorCount, collegeCount, cafeCount] = await Promise.all([
-                getCount(industry),
-                getCount("coworking space"),
-                getCount("Venture Capital"),
-                getCount("university"),
-                getCount("cafe")
-            ]);
-
-            if (!isMounted.current) return;
-
-            const reasons: string[] = [];
-            let industryInsight = "";
-
-            const isTech = ["SaaS", "Fintech", "Software", "Tech", "AI"].some(t => industry.includes(t));
-
-            // --- REASON ENGINE 2.0 (Deterministic) ---
-            if (isTech) {
-                // TALENT SIGNAL (University/Colleges)
-                if (collegeCount > 3) reasons.push("Talent: Strong access to skilled graduates from nearby institutions.");
-                else reasons.push("Talent: Recruitment may be challenging due to low density of technical institutes.");
-
-                // INFRA SIGNAL (Coworking)
-                if (coworkingCount > 2) reasons.push(`Infrastructure: ${coworkingCount} active hubs indicate a supportive startup culture.`);
-                else reasons.push("Infrastructure: Lack of flexible workspace options nearby.");
-
-                // CAPITAL SIGNAL (VCs)
-                if (investorCount > 0) reasons.push(`Capital: ${investorCount} Venture Capital firms found in the immediate vicinity.`);
-                else reasons.push("Capital: No immediate VC presence; fundraising may require travel.");
-
-                industryInsight = `For a ${industry} startup, this location ${collegeCount > 2 ? "offers good talent access" : "has likely talent gaps"} and ${investorCount > 0 ? "excellent investor proximity" : "limited local funding options"}.`;
-            } else {
-                // RETAIL / LIFESTYLE LOGIC
-                // FOOTFALL SIGNAL (Cafes/Gyms proxy)
-                if (cafeCount > 15) reasons.push("Demand: High daily footfall suggested by density of existing cafes/spots.");
-                else reasons.push("Demand: Lower organic foot traffic detected in this specific zone.");
-
-                // COMPETITION SIGNAL
-                reasons.push(`Competition: ${techCount} direct competitors active nearby.`);
-                if (techCount > 10) reasons.push("Market: High saturation suggests intense pricing pressure.");
-                else reasons.push("Market: Early-mover advantage possible in this underserved area.");
-
-                industryInsight = `For ${industry}, success here depends on ${cafeCount > 10 ? "standing out in a busy market" : "drawing destination traffic to a quieter spot"}.`;
-            }
-
-            // Calculations
-            const demandScoreVal = isTech
-                ? Math.min(10, (coworkingCount + collegeCount))
-                : Math.min(10, Math.floor(cafeCount / 2));
-
-            const demandLabel = demandScoreVal > 7 ? "High" : demandScoreVal > 3 ? "Medium" : "Low";
-
-            let competitionLabel = "Medium";
-            if (techCount > 15) competitionLabel = "High";
-            if (techCount < 3) competitionLabel = "Low";
-
-            let riskLabel = "Low";
-            if (isTech && (coworkingCount === 0 || collegeCount === 0)) riskLabel = "High";
-            if (!isTech && cafeCount < 5) riskLabel = "High";
-
-            // Total Score
-            let totalScore = 0;
-            if (isTech) {
-                totalScore = 30 + (coworkingCount * 5) + (investorCount * 8) + (collegeCount * 3);
-            } else {
-                // Retail score based on footfall (cafes) and moderate competition
-                totalScore = 30 + (cafeCount * 3) + (techCount * 1);
-            }
-
-            if (riskLabel === "High") totalScore -= 20;
-            if (totalScore > 96) totalScore = 96;
-            if (totalScore < 15) totalScore = 15;
-
-            setAnalysis({
-                competition: competitionLabel,
-                demand: demandLabel,
-                risk: riskLabel,
-                score: totalScore,
-                analysisType: "Deep Signal Analysis",
-                ecosystem: {
-                    coworking: coworkingCount,
-                    investors: investorCount,
-                    startups: techCount
-                },
-                reasons,
-                industryInsight
-            });
-
-            if (!session) {
-                const currentUsed = parseInt(localStorage.getItem("starto_trials") || "0");
-                const newUsed = currentUsed + 1;
-                localStorage.setItem("starto_trials", newUsed.toString());
-                setTrialsLeft(Math.max(0, 3 - newUsed));
-
-                if (3 - newUsed <= 0) {
-                    toast.info("You've used all your free trials!", {
-                        description: "Create an account to continue exploring."
-                    });
+            service.nearbySearch(request, (results, status) => {
+                let foundPlaces: any[] = [];
+                if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+                    foundPlaces = results.map(p => ({
+                        id: p.place_id,
+                        name: p.name,
+                        lat: p.geometry?.location?.lat(),
+                        lng: p.geometry?.location?.lng(),
+                        rating: p.rating,
+                        address: p.vicinity,
+                        types: p.types
+                    }));
                 }
-            }
 
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to analyze market signals.");
-        } finally {
-            setLoading(false);
+                setRealCompetitors(foundPlaces);
+
+                // 2. Run Analysis based on REAL data
+                setTimeout(() => {
+                    const analysis = analyzeBusiness(domain, location.address, budget, foundPlaces);
+                    setResult(analysis);
+                    setStep("result");
+
+                    // Zoom slightly to fit (optional)
+                    if (foundPlaces.length > 0) {
+                        const bounds = new google.maps.LatLngBounds();
+                        bounds.extend({ lat: location.lat, lng: location.lng });
+                        foundPlaces.slice(0, 10).forEach(p => bounds.extend({ lat: p.lat, lng: p.lng }));
+                        mapInstance.fitBounds(bounds);
+                    } else {
+                        mapInstance.setZoom(14);
+                        mapInstance.panTo({ lat: location.lat, lng: location.lng });
+                    }
+
+                }, 1500); // Small delay for UX "Scanning" feel
+            });
+        } else {
+            // Fallback if map not ready (should happen rarely)
+            setTimeout(() => {
+                const analysis = analyzeBusiness(domain, location.address, budget, []);
+                setResult(analysis);
+                setStep("result");
+            }, 1000);
         }
     };
 
     const handleReset = () => {
-        setAnalysis(null);
-        setSelectedLocation(null);
-        setIndustry("");
-        setBudget("medium");
-        // Also clear marker by clearing selectedLocation (done above)
+        setStep("input");
+        setResult(null);
+        setRealCompetitors([]);
+        setSelectedCompetitor(null);
+        if (location && mapInstance) {
+            mapInstance.setZoom(14);
+            mapInstance.panTo({ lat: location.lat, lng: location.lng });
+        }
     };
 
     return (
-        <div className="relative w-full h-screen bg-[#050505] text-white flex flex-col overflow-hidden">
+        <div className="relative w-full h-screen bg-gray-100 dark:bg-black overflow-hidden flex flex-col">
 
-            {/* 0. MINIMAL TOP NAVBAR */}
-            <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
-                {/* Logo */}
-                <Link href="/" className="pointer-events-auto flex items-center gap-2 group">
-                    <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center font-bold text-black text-xl group-hover:scale-105 transition-transform">S</div>
-                    <span className="font-bold text-2xl tracking-tight text-white">Starto</span>
-                </Link>
-
-                {/* Right Actions */}
-                <div className="pointer-events-auto">
-                    {session ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-10 w-10 rounded-full p-0 hover:bg-white/10">
-                                    <Avatar className="h-9 w-9 border border-white/10">
-                                        <AvatarImage src={session.user?.image || ""} />
-                                        <AvatarFallback className="bg-primary/20 text-primary">
-                                            {session.user?.name?.[0] || "U"}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56 bg-[#111] border-white/10 text-white">
-                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                <DropdownMenuSeparator className="bg-white/10" />
-                                <Link href="/dashboard">
-                                    <DropdownMenuItem className="cursor-pointer focus:bg-white/10 focus:text-white">
-                                        <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
-                                    </DropdownMenuItem>
-                                </Link>
-                                <Link href="/profile">
-                                    <DropdownMenuItem className="cursor-pointer focus:bg-white/10 focus:text-white">
-                                        <User className="mr-2 h-4 w-4" /> Profile
-                                    </DropdownMenuItem>
-                                </Link>
-                                <DropdownMenuSeparator className="bg-white/10" />
-                                <DropdownMenuItem
-                                    className="cursor-pointer text-red-400 focus:bg-red-500/10 focus:text-red-400"
-                                    onSelect={async (e) => {
-                                        e.preventDefault();
-                                        await signOut({ redirect: false });
-                                        window.location.href = "/login";
-                                    }}
-                                >
-                                    <LogOut className="mr-2 h-4 w-4" /> Log out
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    ) : (
-                        <Link href="/login">
-                            <Button className="bg-white text-black hover:bg-gray-200 font-bold px-6 shadow-lg">
-                                Log in
-                            </Button>
-                        </Link>
-                    )}
-                </div>
-            </div>
-
-            {/* ZONE 1: MAP BACKGROUND */}
+            {/* --- LAYER 1: FULL SCREEN MAP --- */}
             <div className="absolute inset-0 z-0">
                 <MapContainer
                     isLoaded={isLoaded}
                     userLocation={mapCenter}
-                    onLoad={handleMapLoad}
-                    onClick={handleMapClick}
+                    onLoad={(map) => setMapInstance(map)}
                     options={{
-                        styles: startoMapStyle,
+                        styles: theme === "light" ? [] : startoMapStyle, // Use default for Light, Starto Dark for Dark
                         disableDefaultUI: true,
-                        backgroundColor: "#050505",
-                        clickableIcons: false,
-                        gestureHandling: "greedy",
+                        zoomControl: false,
+                        fullscreenControl: false,
+                        streetViewControl: false,
+                        clickableIcons: true,
+                        backgroundColor: theme === "light" ? "#f3f4f6" : "#050505",
                     }}
                 >
-                    {selectedLocation && (
+                    {/* User Pin */}
+                    {location && (
                         <Marker
-                            position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
+                            position={{ lat: location.lat, lng: location.lng }}
                             animation={google.maps.Animation.DROP}
-                            icon={{
-                                url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
-                            }}
                         />
                     )}
-                    <EcosystemMarkers
-                        map={mapInstance}
-                        center={selectedLocation ? { lat: selectedLocation.lat, lng: selectedLocation.lng } : (mapCenter || { lat: 12.9716, lng: 77.5946 })}
-                        industry={industry} // Dynamic Industry
-                        // Explore Mode: Always hide Freelancers (People). Hide Investors if not logged in.
-                        hiddenTypes={session ? ["freelancer"] : ["freelancer", "investor"]}
-                    />
+
+                    {/* REAL Competitor Markers */}
+                    {step === "result" && realCompetitors.map((comp) => (
+                        <Marker
+                            key={comp.id}
+                            position={{ lat: comp.lat, lng: comp.lng }}
+                            onClick={() => setSelectedCompetitor(comp)}
+                            icon={{
+                                path: google.maps.SymbolPath.CIRCLE,
+                                fillColor: "#ef4444", // Red for competitors
+                                fillOpacity: 0.9,
+                                scale: 7,
+                                strokeColor: "white",
+                                strokeWeight: 2,
+                            }}
+                        />
+                    ))}
+
+                    {/* InfoWindow for Competitors */}
+                    {selectedCompetitor && (
+                        <InfoWindow
+                            position={{ lat: selectedCompetitor.lat, lng: selectedCompetitor.lng }}
+                            onCloseClick={() => setSelectedCompetitor(null)}
+                        >
+                            <div className="p-2 min-w-[200px] text-black">
+                                <h3 className="font-bold text-sm">{selectedCompetitor.name}</h3>
+                                <p className="text-xs text-gray-600 mb-1">{selectedCompetitor.address}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className="bg-yellow-100 text-yellow-800 text-[10px] px-1.5 py-0.5 rounded font-bold">
+                                        ★ {selectedCompetitor.rating || "N/A"}
+                                    </span>
+                                    <span className="text-[10px] text-gray-400 capitalize">
+                                        {selectedCompetitor.types?.[0]?.replace(/_/g, " ")}
+                                    </span>
+                                </div>
+                            </div>
+                        </InfoWindow>
+                    )}
                 </MapContainer>
             </div>
 
+            {/* --- LAYER 2: APP OVERLAYS --- */}
 
+            {/* Top Gradient Fade */}
+            <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/80 dark:from-black/80 to-transparent pointer-events-none z-10" />
 
-            // ... existing code ...
-
-            {/* MAP LEGEND (Floating) */}
-            <div className={cn("absolute top-20 right-4 md:bottom-6 md:right-6 md:top-auto z-40 bg-[#111]/90 backdrop-blur-md border border-white/10 rounded-xl p-3 md:p-4 shadow-2xl pointer-events-auto", analysis && "hidden md:block")}>
-                <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Map Legend</h4>
-                <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill={LEGEND_COLORS.startup} stroke="black" strokeWidth="1.5">
-                            {LEGEND_ICONS.startup}
-                        </svg>
-                        <span className="text-xs font-medium text-gray-300">Startups</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill={LEGEND_COLORS.space} stroke="black" strokeWidth="1.5">
-                            {LEGEND_ICONS.space}
-                        </svg>
-                        <span className="text-xs font-medium text-gray-300">Coworking Spaces</span>
-                    </div>
-
-                    {/* Conditional Legend Items (Investors) */}
-                    <div className={cn("flex items-center gap-3 transition-opacity", !session && "opacity-50")} title={!session ? "Login to view" : ""}>
-                        <div className="relative">
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill={LEGEND_COLORS.investor} stroke="black" strokeWidth="1.5">
-                                {LEGEND_ICONS.investor}
-                            </svg>
-                            {!session && (
-                                <div className="absolute -top-1 -right-1 bg-black rounded-full p-0.5 border border-white/10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                    </svg>
-                                </div>
-                            )}
-                        </div>
-                        <span className="text-xs font-medium text-gray-300">Investors {!session && <span className="text-[10px] text-gray-500 ml-1">(Login)</span>}</span>
-                    </div>
-
-                    {/* Conditional Legend Items (Freelancers) */}
-                    <div className={cn("flex items-center gap-3 transition-opacity", !session && "opacity-50")} title={!session ? "Login to view" : ""}>
-                        <div className="relative">
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill={LEGEND_COLORS.freelancer} stroke="black" strokeWidth="1.5">
-                                {LEGEND_ICONS.freelancer}
-                            </svg>
-                            {!session && (
-                                <div className="absolute -top-1 -right-1 bg-black rounded-full p-0.5 border border-white/10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                    </svg>
-                                </div>
-                            )}
-                        </div>
-                        <span className="text-xs font-medium text-gray-300">Freelancers {!session && <span className="text-[10px] text-gray-500 ml-1">(Login)</span>}</span>
-                    </div>
-                </div>
+            {/* Navigation */}
+            {/* Navigation */}
+            <div className="absolute top-4 left-4 md:top-6 md:right-6 z-30">
+                <a href="/dashboard">
+                    <Button variant="outline" className="bg-white/80 dark:bg-black/50 backdrop-blur-md border-gray-200 dark:border-white/10 text-xs font-medium h-9 px-4 hover:bg-white dark:hover:bg-black/80 transition-all shadow-sm">
+                        ← <span className="hidden md:inline">Back to Dashboard</span><span className="md:hidden">Back</span>
+                    </Button>
+                </a>
             </div>
 
-            {/* ZONE 2 & 3: FIXED BOTTOM PANEL */}
-            <div className="absolute bottom-0 left-0 right-0 z-20 flex justify-center p-4 pointer-events-none">
-                <Card className="w-full max-w-xl bg-[#111]/95 border-t border-white/10 shadow-2xl backdrop-blur-md pointer-events-auto transition-all duration-500 rounded-t-2xl rounded-b-none md:rounded-2xl md:mb-4">
-
-                    {/* --- STATE: RESULTS --- */}
-                    {analysis ? (
-                        <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
-                            {/* Header: Address & Score */}
-                            <div className="flex justify-between items-start gap-3">
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="text-lg md:text-2xl font-bold text-white leading-tight break-words">{selectedLocation?.address}</h3>
-                                    <p className="text-xs md:text-lg text-gray-300 font-medium mt-1">Market Opportunity Analysis</p>
-                                </div>
-                                <div className="text-right shrink-0">
-                                    <div className={cn("text-3xl md:text-5xl font-black leading-none", analysis.score > 70 ? "text-green-400" : analysis.score > 40 ? "text-yellow-400" : "text-red-400")}>
-                                        {analysis.score}<span className="text-sm md:text-2xl text-gray-500 font-bold ml-0.5">/100</span>
-                                    </div>
-                                    <div className="text-[10px] md:text-sm text-gray-400 font-bold uppercase tracking-wider mt-1">Viability Score</div>
-                                </div>
+            {/* INPUT PANEL (Floating Top Left) */}
+            {/* INPUT PANEL (Floating Top Left on Desktop / Bottom Sheet on Mobile) */}
+            <div className={`absolute z-20 w-full md:max-w-[360px] 
+                bottom-0 left-0 right-0 md:top-24 md:left-8 md:bottom-auto 
+                ${step === 'result' ? 'hidden md:block' : 'block'} 
+            `}>
+                <motion.div
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1, x: 0 }}
+                    transition={{ type: "spring", damping: 20 }}
+                    className="bg-white/95 dark:bg-[#111]/95 backdrop-blur-xl md:rounded-2xl rounded-t-3xl border-t md:border border-gray-200 dark:border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] overflow-hidden"
+                >
+                    <div className="p-5 space-y-5">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="relative w-8 h-8 rounded-lg overflow-hidden">
+                                <Image src="/logo-v2.png" alt="Starto" fill className="object-cover" />
                             </div>
-
-                            {/* Core Signals */}
-                            <div className="grid grid-cols-3 gap-2 md:gap-3">
-                                <SignalCard label="Saturation" value={analysis.competition} />
-                                <SignalCard label="Demand" value={analysis.demand} />
-                                <SignalCard label="Risk" value={analysis.risk} />
+                            <div>
+                                <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-none">Starto</h2>
+                                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium tracking-wide">Market Intelligence</p>
                             </div>
+                        </div>
 
-                            <div className="h-px bg-white/10 w-full" />
+                        {/* 1. Location */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider ml-1">Location</label>
+                            <LocationSearchInput
+                                placeholder="Search City, Area..."
+                                defaultValue={location?.address}
+                                onLocationSelect={(loc) => setLocation({ address: loc.address, lat: loc.latitude, lng: loc.longitude })}
+                            />
+                        </div>
 
-                            {/* Ecosystem Stats */}
-                            <div className="grid grid-cols-3 gap-2 md:gap-4 py-1 text-center">
-                                <div>
-                                    <div className="text-xl md:text-2xl font-mono font-bold text-white leading-none">{analysis.ecosystem.coworking}</div>
-                                    <div className="text-[10px] md:text-xs text-gray-400 font-bold uppercase mt-1">Hubs</div>
-                                </div>
-                                <div>
-                                    <div className="text-xl md:text-2xl font-mono font-bold text-white leading-none">{analysis.ecosystem.startups}</div>
-                                    <div className="text-[10px] md:text-xs text-gray-400 font-bold uppercase mt-1">Competitors</div>
-                                </div>
-                                <div>
-                                    <div className="text-xl md:text-2xl font-mono font-bold text-white leading-none">{analysis.ecosystem.investors}</div>
-                                    <div className="text-[10px] md:text-xs text-gray-400 font-bold uppercase mt-1">Capital</div>
-                                </div>
+                        {/* 2. Domain */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider ml-1">Business Domain</label>
+                            <div className="relative">
+                                <Store className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                                <Input
+                                    className="pl-9 bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-500 h-10 focus:bg-gray-200 dark:focus:bg-white/10 transition-colors"
+                                    placeholder="e.g. Chai Shop, Gym..."
+                                    value={domain}
+                                    onChange={(e) => setDomain(e.target.value)}
+                                />
                             </div>
+                        </div>
 
-                            <div className="h-px bg-white/10 w-full" />
-
-                            {/* REASON ENGINE LAYER */}
-                            <div className="space-y-3">
-                                <h4 className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                                    <Sparkles className="w-3 h-3 text-yellow-500" /> Analysis Reasoning
-                                </h4>
-                                <ul className="space-y-2">
-                                    {analysis.reasons && analysis.reasons.length > 0 ? (
-                                        analysis.reasons.map((reason, i) => {
-                                            const [key, val] = reason.includes(":") ? reason.split(":") : ["", reason];
-                                            return (
-                                                <li key={i} className="text-xs md:text-sm text-gray-300 flex items-start gap-2 leading-relaxed">
-                                                    <span className="text-blue-400 mt-1 text-[10px] shrink-0">●</span>
-                                                    <span>
-                                                        {key && <span className="text-white font-semibold">{key}:</span>}
-                                                        {val}
-                                                    </span>
-                                                </li>
-                                            );
-                                        })
-                                    ) : (
-                                        <li className="text-xs md:text-sm text-gray-500 italic">
-                                            Insufficient ecosystem signals detected for this area.
-                                        </li>
-                                    )}
-                                </ul>
+                        {/* 3. Budget */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider ml-1">Est. Budget (INR)</label>
+                            <div className="grid grid-cols-3 gap-1">
+                                {["Low", "Medium", "High"].map((level) => (
+                                    <button
+                                        key={level}
+                                        onClick={() => setBudget(level)}
+                                        className={`
+                                            h-9 rounded-md text-xs font-medium transition-all border
+                                            ${budget === level
+                                                ? "bg-gray-900 dark:bg-white text-white dark:text-black border-transparent shadow-lg"
+                                                : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-white/5 hover:bg-gray-200 dark:hover:bg-white/10"}
+                                        `}
+                                    >
+                                        <span className="block text-[10px] opacity-70">
+                                            {level === "Low" ? "₹" : level === "Medium" ? "₹₹" : "₹₹₹"}
+                                        </span>
+                                        {level}
+                                    </button>
+                                ))}
                             </div>
+                        </div>
 
-                            {/* INDUSTRY INSIGHT LAYER */}
-                            {analysis.industryInsight && (
-                                <div className="bg-blue-500/10 border border-blue-500/20 p-3 md:p-4 rounded-lg flex gap-3 text-xs md:text-sm text-blue-200">
-                                    <Lightbulb className="w-4 h-4 md:w-5 md:h-5 shrink-0 text-blue-400 mt-0.5" />
-                                    <div className="space-y-1">
-                                        <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Strategic Insight</span>
-                                        <p className="italic leading-relaxed">"{analysis.industryInsight}"</p>
-                                    </div>
-                                </div>
+                        {/* Action Btn */}
+                        <Button
+                            onClick={handleAnalyze}
+                            disabled={!location || !domain || step === "analyzing"}
+                            className="w-full h-11 bg-primary text-white dark:text-black font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 mt-2"
+                        >
+                            {step === "analyzing" ? (
+                                <span className="flex items-center gap-2">Scanning Real World...</span>
+                            ) : (
+                                <span className="flex items-center gap-2">Analyze Market <ArrowRight className="w-4 h-4" /></span>
                             )}
-
-                            {/* HONESTY DISCLAIMER */}
-                            <div className="text-[10px] text-center text-gray-500 pt-2 border-t border-white/5 leading-tight">
-                                Insights are based on observable ecosystem signals and industry requirements. Not predictive guarantees.
-                            </div>
-
-                            <div className="flex gap-2 min-h-[44px]">
-                                <Button variant="outline" className="flex-1 h-auto py-2 text-xs md:text-sm" onClick={handleReset}>
-                                    <RefreshCw className="mr-2 h-3 w-3 md:h-4 md:w-4" /> Try Another
-                                </Button>
-                                <Button
-                                    variant="secondary"
-                                    className="flex-1 h-auto py-2 text-xs md:text-sm"
-                                    onClick={async () => {
-                                        // Save Logic
-                                        try {
-                                            const res = await fetch("/api/locations/save", {
-                                                method: "POST",
-                                                headers: { "Content-Type": "application/json" },
-                                                body: JSON.stringify({
-                                                    latitude: selectedLocation?.lat,
-                                                    longitude: selectedLocation?.lng,
-                                                    address: selectedLocation?.address,
-                                                    ...analysis
-                                                })
-                                            });
-                                            if (res.status === 401) setShowLoginOverlay(true);
-                                            else if (res.ok) toast.success("Location Saved!");
-                                            else throw new Error();
-                                        } catch { toast.error("Error saving"); }
-                                    }}
-                                >
-                                    📌 Save Analysis
-                                </Button>
-                            </div>
-                        </CardContent>
-                    ) : (
-                        /* --- STATE: INPUTS --- */
-                        <CardContent className="p-4 md:p-6 space-y-5">
-
-                            {/* 1. Location Selection */}
-                            <div className="space-y-2">
-                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                    1. Area to Analyze
-                                </Label>
-                                <div className="relative">
-                                    {isLoaded ? (
-                                        <Autocomplete
-                                            onLoad={onLoadAutocomplete}
-                                            onPlaceChanged={onPlaceChanged}
-                                        >
-                                            <div className="relative">
-                                                <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-primary animate-pulse" />
-                                                <Input
-                                                    className="pl-9 bg-background border-input focus-visible:ring-primary"
-                                                    placeholder="Search location or pin on map"
-                                                    value={selectedLocation ? selectedLocation.address : ""}
-                                                    onChange={(e) => {
-                                                        // Update address while typing, keeping lat/lng if we are just refining
-                                                        // But really, if they type, we 'invalidate' the lat/lng until they select.
-                                                        // Use partial object to allow typing
-                                                        if (selectedLocation) {
-                                                            setSelectedLocation({ ...selectedLocation, address: e.target.value });
-                                                        } else {
-                                                            setSelectedLocation({ lat: 0, lng: 0, address: e.target.value });
-                                                        }
-                                                    }}
-                                                    readOnly={geocoding}
-                                                />
-                                                {geocoding && <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />}
-                                            </div>
-                                        </Autocomplete>
-                                    ) : <Input disabled placeholder="Loading maps..." />}
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col md:flex-row gap-4">
-                                {/* 2. Industry Selection */}
-                                <div className="flex-1 space-y-2">
-                                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                        2. Startup Domain <span className="text-red-500">*</span>
-                                    </Label>
-                                    <Select value={industry} onValueChange={setIndustry}>
-                                        <SelectTrigger className="bg-background border-input">
-                                            <SelectValue placeholder="Select Industry" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {INDUSTRIES.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {/* 3. Budget Selection */}
-                                <div className="w-full md:w-[140px] space-y-2">
-                                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                        3. Investment Capacity
-                                    </Label>
-                                    <Select value={budget} onValueChange={setBudget}>
-                                        <SelectTrigger className="bg-background border-input">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="low">Low</SelectItem>
-                                            <SelectItem value="medium">Medium</SelectItem>
-                                            <SelectItem value="high">High</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            {/* Action Button */}
-                            <Button
-                                size="lg"
-                                className="w-full text-lg font-bold shadow-lg shadow-primary/20"
-                                disabled={!selectedLocation || !industry || loading}
-                                onClick={handleAnalyze}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analyzing local ecosystem signals...
-                                    </>
-                                ) : (
-                                    <>
-                                        Analyze Market
-                                        {!session && (
-                                            <span className="ml-2 text-xs font-normal opacity-70 bg-white/10 px-2 py-0.5 rounded-full">
-                                                {trialsLeft} free left
-                                            </span>
-                                        )}
-                                    </>
-                                )}
-                            </Button>
-
-                        </CardContent>
-                    )
-                    }
-                </Card >
-            </div >
-
-            {/* Login Overlay */}
-            {
-                showLoginOverlay && (
-                    <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                        <Card className="max-w-md w-full bg-[#111] border-white/10 text-white">
-                            <CardHeader className="text-center">
-                                <CardTitle className="text-2xl">Get the Full Report?</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4 text-center">
-                                <p className="text-gray-400">
-                                    You've hit the limit for guest exploration.
-                                    Create a free account to unlock detailed breakdowns, saved reports, and network access.
-                                </p>
-                                <div className="grid gap-3 pt-4">
-                                    <Link href="/login?callbackUrl=/explore" className="w-full">
-                                        <Button className="w-full text-lg" size="lg">Join Starto (Free)</Button>
-                                    </Link>
-                                    <Button variant="ghost" onClick={() => setShowLoginOverlay(false)}>Cancel</Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        </Button>
                     </div>
-                )
-            }
+                </motion.div>
+            </div>
+
+
+            {/* RESULTS PANEL (Floating Right Side) */}
+            <AnimatePresence>
+                {step === "result" && result && (
+                    <motion.div
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        transition={{ type: "spring", damping: 25 }}
+                        className="absolute md:top-24 md:right-8 md:bottom-6 bottom-0 left-0 right-0 z-40 w-full md:max-w-[380px] flex flex-col h-[70vh] md:h-auto pointer-events-none"
+                    >
+                        {/* Scrollable Container */}
+                        <div className="bg-white/95 dark:bg-[#0A0A0A] backdrop-blur-xl border-t md:border border-gray-200 dark:border-white/10 rounded-t-3xl md:rounded-2xl shadow-[0_-10px_50px_rgba(0,0,0,0.2)] flex flex-col h-full pointer-events-auto overflow-hidden">
+
+                            {/* Header */}
+                            <div className="p-5 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 flex items-start justify-between">
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white capitalize">{domain}</h3>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
+                                        <MapPin className="w-3 h-3" /> {location?.address?.split(',')[0]}
+                                    </p>
+                                </div>
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-400 hover:text-red-500" onClick={handleReset}>
+                                    <X className="w-4 h-4" />
+                                </Button>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+
+                                {/* 1. Demand Score */}
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-end">
+                                        <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Demand Score</h4>
+                                        <Badge className={`border ${result.demand.score > 70 ? "bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/20" : "bg-yellow-100 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/20"}`}>
+                                            {result.demand.label}
+                                        </Badge>
+                                    </div>
+                                    <div className="relative h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${result.demand.score}%` }}
+                                            transition={{ duration: 1, delay: 0.2 }}
+                                            className={`absolute top-0 left-0 h-full rounded-full ${result.demand.score > 70 ? "bg-green-500" : "bg-yellow-500"}`}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-white/5 p-3 rounded-lg border border-gray-100 dark:border-white/5">
+                                        {result.demand.details}
+                                    </p>
+                                </div>
+
+                                {/* 2. Competition & Risk Grid */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-100 dark:border-white/5">
+                                        <div className="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase mb-1 flex items-center gap-1">
+                                            <Users className="w-3 h-3" /> Competition
+                                        </div>
+                                        <div className="text-lg font-bold text-gray-900 dark:text-white capitalize">{result.competition.density}</div>
+                                        <div className="text-xs text-gray-500 mt-1">{result.competition.count} Nearby</div>
+                                    </div>
+                                    <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-100 dark:border-white/5">
+                                        <div className="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase mb-1 flex items-center gap-1">
+                                            <AlertTriangle className="w-3 h-3" /> Risk Level
+                                        </div>
+                                        <div className="text-lg font-bold text-gray-900 dark:text-white capitalize">{result.risk.level}</div>
+                                        <div className="text-xs text-gray-500 mt-1">{result.risk.factors.length} factors</div>
+                                    </div>
+                                </div>
+
+                                {/* 3. Risk Factors */}
+                                <div>
+                                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Risk Factors</h4>
+                                    <ul className="space-y-2">
+                                        {result.risk.factors.map((f, i) => (
+                                            <li key={i} className="text-xs text-red-600 dark:text-red-200 flex items-start gap-2 bg-red-50 dark:bg-red-500/10 p-2 rounded border border-red-100 dark:border-red-500/20">
+                                                <AlertTriangle className="w-3 h-3 shrink-0 mt-0.5 text-red-500 dark:text-red-400" />
+                                                {f}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {/* 4. Starto Suggestions */}
+                                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-xl border border-primary/20">
+                                    <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-3 flex items-center gap-1">
+                                        <Sparkles className="w-3 h-3" /> Starto Insights
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {result.suggestions.map((s, i) => (
+                                            <div key={i} className="flex gap-3 text-xs text-gray-700 dark:text-gray-200">
+                                                <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center shrink-0 font-mono font-bold text-[10px]">
+                                                    {i + 1}
+                                                </div>
+                                                <span className="leading-snug">{s}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/40 text-center">
+                                <Button variant="link" className="text-xs text-gray-500 hover:text-black dark:hover:text-white h-auto p-0">
+                                    View Full Report Details
+                                </Button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Mobile / Empty State Hint */}
+            {!result && (
+                <div className="absolute bottom-10 left-0 right-0 z-10 flex justify-center pointer-events-none">
+                    <div className="bg-white/80 dark:bg-black/80 backdrop-blur px-4 py-2 rounded-full border border-gray-200 dark:border-white/10 text-xs text-gray-600 dark:text-gray-400 animate-pulse">
+                        Use the panel to analyze a market opportunity
+                    </div>
+                </div>
+            )}
+
+            <LimitReachedModal open={showLimitModal} />
         </div >
-    );
-}
-
-// Sub-components for cleaner code
-function SignalCard({ label, value }: { label: string, value: string }) {
-    let color = "text-yellow-400";
-
-    if (label === "Demand") {
-        if (value === "High") color = "text-green-400";
-        if (value === "Low") color = "text-red-400";
-    } else {
-        // Default (Risk/Saturation): High is Bad
-        if (value === "High") color = "text-red-400";
-        if (value === "Low") color = "text-green-400";
-    }
-
-    return (
-        <div className="bg-white/5 md:bg-white/10 rounded-lg p-2 md:p-3 text-center border border-white/5 md:border-white/10">
-            <div className="text-[10px] md:text-xs text-gray-400 md:text-gray-200 font-bold mb-0.5 md:mb-1">{label}</div>
-            <div className={cn("font-bold text-xs md:text-sm", color)}>{value}</div>
-        </div>
-    );
-}
-
-function StatItem({ label, value }: { label: string, value: number }) {
-    return (
-        <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-400">{label}</span>
-            <span className="font-mono font-bold">{value}</span>
-        </div>
     );
 }

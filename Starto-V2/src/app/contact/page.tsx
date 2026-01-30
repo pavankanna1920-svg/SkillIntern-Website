@@ -8,7 +8,7 @@ export default function ContactPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar />
-            <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
+            <main className="flex-1 flex flex-col items-center justify-center px-4 pt-32 pb-12 text-center">
                 <div className="max-w-md mx-auto space-y-8">
                     <div className="space-y-4">
                         <h1 className="text-4xl font-bold tracking-tight">Contact Starto</h1>

@@ -1,11 +1,10 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 import MultiSelect from "@/components/ui/MultiSelect";
 import {
-    SKILLS,
     EXPERIENCE_LEVELS,
     AVAILABILITY_TYPES,
     WORK_TYPES,
@@ -25,17 +24,33 @@ const mapToEnum = (val: string) => {
     return val.replace(/\+/g, "_PLUS").replace(/[-\s]/g, "_").toUpperCase();
 };
 
-export default function OnboardingProfilePage() {
+function ProfileContent() {
     const { data: session, status, update } = useSession();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
-    const activeRole = (session?.user as any)?.activeRole?.toLowerCase();
+    // Get Data from URL Params (Strict Flow State)
+    const searchParams = useSearchParams();
+    const activeRole = searchParams.get("role")?.toLowerCase();
+
+    // Location Data for Submission
+    const locationData = {
+        latitude: parseFloat(searchParams.get("lat") || "0"),
+        longitude: parseFloat(searchParams.get("lng") || "0"),
+        city: searchParams.get("city") || "",
+        state: searchParams.get("state") || "",
+        country: searchParams.get("country") || "",
+        pincode: searchParams.get("pincode") || "",
+    };
 
     useEffect(() => {
+        if (status === "loading") return;
+
         if (status === "unauthenticated") {
             router.push("/login");
         } else if (status === "authenticated" && !activeRole) {
+            // Strict check: No role? Go back to start.
+            console.warn("Missing role param, redirecting to role selection");
             router.push("/onboarding/role");
         }
     }, [status, activeRole, router]);
@@ -53,76 +68,45 @@ export default function OnboardingProfilePage() {
                 setLoading(false);
                 return;
             }
-            if (activeRole === "investor" && (!formData.sectors || formData.sectors.length === 0)) {
-                alert("Please select at least one sector of interest.");
-                setLoading(false);
-                return;
-            }
-            if (activeRole === "investor" && (!formData.stages || formData.stages.length === 0)) {
-                alert("Please select at least one stage preference.");
-                setLoading(false);
-                return;
-            }
+            // ... other validations ...
 
-            // 1. Prepare Profile Data
-            const profileData = { ...formData };
+            // FINAL SUBMISSION: One Transaction
+            const payload = {
+                role: activeRole,
+                location: locationData,
+                userDetails: {
+                    name: formData.name, // Only present in some forms
+                    phoneNumber: formData.phoneNumber
+                },
+                profileData: formData
+            };
 
-            // STEP 1: Update Role Profile (CRITICAL: Do this BEFORE marking onboarded)
             const profileRes = await fetch("/api/onboarding/complete", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: session?.user?.email,
-                    role: activeRole,
-                    data: profileData,
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (!profileRes.ok) {
                 const err = await profileRes.json();
-                throw new Error(err.error || "Failed to save profile details");
+                throw new Error(err.error || "Failed to complete onboarding");
             }
-
-            // 2. Prepare User Data (Name, Phone, Onboarded Status)
-            const userPayload = {
-                name: formData.name,
-                phoneNumber: formData.phoneNumber,
-                activeRole: activeRole.toUpperCase(), // Enum format
-                onboarded: true, // Only set this after profile success
-            };
-
-            // If form has 'name' (Startup/Investor/Provider), add it.
-            if (formData.name) {
-                // @ts-ignore
-                userPayload.name = formData.name;
-            }
-
-            // STEP 2: Update User Table (Canonical)
-            const userRes = await fetch("/api/users/me", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(userPayload)
-            });
-
-            if (!userRes.ok) throw new Error("Failed to update user status");
 
             // Sync Session (Important to pass Middleware Guard)
             await update({
                 onboarded: true,
-                activeRole: activeRole, // Ensure role is sticky
-                // Persist Location in Session (Prevent Loop)
-                latitude: (session?.user as any)?.latitude,
-                longitude: (session?.user as any)?.longitude,
-                city: (session?.user as any)?.city
+                activeRole: activeRole.toUpperCase(),
+                latitude: locationData.latitude,
+                longitude: locationData.longitude,
+                city: locationData.city
             });
 
             // Redirect to Dashboard (Flow Complete)
-            router.refresh(); // Update Server Components (like Layout)
-            router.push("/dashboard");
+            // Use hard navigation to ensure clean state and middleware pass
+            window.location.href = "/dashboard";
         } catch (error: any) {
             console.error(error);
             alert(error.message || "Error saving profile. Please try again.");
-        } finally {
             setLoading(false);
         }
     };
@@ -132,9 +116,11 @@ export default function OnboardingProfilePage() {
         <div className="min-h-screen bg-background text-foreground py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl font-bold tracking-tight">Complete Your Profile</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        {activeRole === 'freelancer' ? "Tell us about your work" : "Complete Your Profile"}
+                    </h1>
                     <p className="mt-2 text-muted-foreground">
-                        Tell us more about your {activeRole} journey.
+                        {activeRole === 'freelancer' ? "Simple language is used" : `Tell us more about your ${activeRole} journey.`}
                     </p>
                 </div>
 
@@ -149,7 +135,55 @@ export default function OnboardingProfilePage() {
     );
 }
 
+export default function OnboardingProfilePage() {
+    return (
+        <Suspense fallback={<div className="h-screen flex items-center justify-center">Loading...</div>}>
+            <ProfileContent />
+        </Suspense>
+    );
+}
+
 // --- Sub-components (Forms) ---
+
+const FREELANCER_UI = {
+    experience: {
+        "Junior": "New to this work",
+        "Mid": "Some experience",
+        "Senior": "Very experienced",
+        "Expert": "Expert level"
+    },
+    availability: {
+        "Full-time": "Full-time (daily work)",
+        "Part-time": "Part-time",
+        "Hourly": "Only when needed"
+    },
+    workType: {
+        "Remote": "Work from home",
+        "Onsite": "Go to work place",
+        "Hybrid": "Both"
+    }
+};
+
+const UNIVERSAL_SKILLS = [
+    // Local Work Skills (Primary)
+    "Electrician", "Plumber", "Carpenter", "Painter", "Mechanic",
+    "Driver", "Cleaner", "Security Guard", "Construction Worker", "Technician",
+
+    // Tech & Office
+    "Web Developer", "Mobile App Developer", "Software Developer", "Designer",
+    "Data Entry", "Computer Operator", "Excel Expert",
+
+    // Creative & Digital
+    "Graphic Designer", "Video Editor", "Photographer",
+    "Content Writer", "Social Media Manager",
+
+    // Business & Services
+    "Accountant", "Sales Executive", "Marketing Professional",
+    "Customer Support", "Office Assistant", "Consultant",
+
+    // Valid Fallback
+    "Other"
+];
 
 function FreelancerForm({ onSubmit, loading }: { onSubmit: (data: any) => void, loading: boolean }) {
     const [formData, setFormData] = useState({
@@ -175,10 +209,10 @@ function FreelancerForm({ onSubmit, loading }: { onSubmit: (data: any) => void, 
             });
         }} className="space-y-6">
             <div>
-                <label className="block text-sm font-medium mb-2">Professional Headline</label>
+                <label className="block text-sm font-medium mb-2">What work do you do?</label>
                 <input
                     type="text"
-                    placeholder="e.g. Full-stack Developer | Next.js Expert"
+                    placeholder="e.g. Electrician / Designer / Developer"
                     className="w-full p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none"
                     value={formData.headline}
                     onChange={e => setFormData({ ...formData, headline: e.target.value })}
@@ -188,12 +222,14 @@ function FreelancerForm({ onSubmit, loading }: { onSubmit: (data: any) => void, 
 
             <div>
                 <MultiSelect
-                    label="Skills"
-                    placeholder="Search skills..."
-                    options={SKILLS}
+                    label="Your work skills"
+                    placeholder="Choose or type your work"
+                    options={UNIVERSAL_SKILLS}
                     selected={formData.skills}
                     onChange={vals => setFormData({ ...formData, skills: vals })}
+                    allowCustom={true}
                 />
+                <p className="text-xs text-muted-foreground mt-1">You can select more than one</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -204,7 +240,11 @@ function FreelancerForm({ onSubmit, loading }: { onSubmit: (data: any) => void, 
                         value={formData.experience}
                         onChange={e => setFormData({ ...formData, experience: e.target.value })}
                     >
-                        {EXPERIENCE_LEVELS.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
+                        {EXPERIENCE_LEVELS.map(lvl => (
+                            <option key={lvl} value={lvl}>
+                                {FREELANCER_UI.experience[lvl as keyof typeof FREELANCER_UI.experience] || lvl}
+                            </option>
+                        ))}
                     </select>
                 </div>
                 <div>
@@ -214,7 +254,11 @@ function FreelancerForm({ onSubmit, loading }: { onSubmit: (data: any) => void, 
                         value={formData.availability}
                         onChange={e => setFormData({ ...formData, availability: e.target.value })}
                     >
-                        {AVAILABILITY_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+                        {AVAILABILITY_TYPES.map(type => (
+                            <option key={type} value={type}>
+                                {FREELANCER_UI.availability[type as keyof typeof FREELANCER_UI.availability] || type}
+                            </option>
+                        ))}
                     </select>
                 </div>
                 <div>
@@ -224,37 +268,50 @@ function FreelancerForm({ onSubmit, loading }: { onSubmit: (data: any) => void, 
                         value={formData.workType}
                         onChange={e => setFormData({ ...formData, workType: e.target.value })}
                     >
-                        {WORK_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+                        {WORK_TYPES.map(type => (
+                            <option key={type} value={type}>
+                                {FREELANCER_UI.workType[type as keyof typeof FREELANCER_UI.workType] || type}
+                            </option>
+                        ))}
                     </select>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input
-                    type="url"
-                    placeholder="Portfolio URL"
-                    className="w-full p-3 bg-background border border-input rounded-xl outline-none focus:ring-2 focus:ring-primary"
-                    value={formData.portfolio}
-                    onChange={e => setFormData({ ...formData, portfolio: e.target.value })}
-                />
-                <input
-                    type="url"
-                    placeholder="GitHub URL"
-                    className="w-full p-3 bg-background border border-input rounded-xl outline-none focus:ring-2 focus:ring-primary"
-                    value={formData.github}
-                    onChange={e => setFormData({ ...formData, github: e.target.value })}
-                />
-                <input
-                    type="url"
-                    placeholder="LinkedIn URL"
-                    className="w-full p-3 bg-background border border-input rounded-xl outline-none focus:ring-2 focus:ring-primary"
-                    value={formData.linkedin}
-                    onChange={e => setFormData({ ...formData, linkedin: e.target.value })}
-                />
+                <div>
+                    <input
+                        type="url"
+                        placeholder="Work photos or website (optional)"
+                        className="w-full p-3 bg-background border border-input rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                        value={formData.portfolio}
+                        onChange={e => setFormData({ ...formData, portfolio: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Leave empty if not available</p>
+                </div>
+                <div>
+                    <input
+                        type="url"
+                        placeholder="Any online work link (optional)"
+                        className="w-full p-3 bg-background border border-input rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                        value={formData.github}
+                        onChange={e => setFormData({ ...formData, github: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Leave empty if not available</p>
+                </div>
+                <div>
+                    <input
+                        type="url"
+                        placeholder="Social profile (optional)"
+                        className="w-full p-3 bg-background border border-input rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                        value={formData.linkedin}
+                        onChange={e => setFormData({ ...formData, linkedin: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Leave empty if not available</p>
+                </div>
             </div>
 
             <div>
-                <label className="block text-sm font-medium mb-2">WhatsApp Number (Required)</label>
+                <label className="block text-sm font-medium mb-2">WhatsApp Number</label>
                 <input
                     type="tel"
                     placeholder="+91 98765 43210"
@@ -263,6 +320,7 @@ function FreelancerForm({ onSubmit, loading }: { onSubmit: (data: any) => void, 
                     onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
                     required
                 />
+                <p className="text-xs text-muted-foreground mt-1">We will contact you here</p>
             </div>
 
             <button
@@ -270,11 +328,31 @@ function FreelancerForm({ onSubmit, loading }: { onSubmit: (data: any) => void, 
                 disabled={loading}
                 className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg active:scale-[0.98] disabled:opacity-50"
             >
-                {loading ? "Saving Profile..." : "Complete Profile"}
+                {loading ? "Saving..." : "Save & Continue"}
             </button>
         </form>
     );
 }
+
+const BUSINESS_TYPES = [
+    { label: "Shop / Store Business", value: "ECOMMERCE" },
+    { label: "Service Business", value: "SERVICES" },
+    { label: "Food / Restaurant / Hotel", value: "ECOMMERCE" },
+    { label: "Education / Training", value: "EDTECH" },
+    { label: "Hospital / Medical", value: "HEALTHTECH" },
+    { label: "Transport / Delivery", value: "LOGISTICS" },
+    { label: "Land / Building / Office", value: "REAL_ESTATE" },
+    { label: "Factory / Farming", value: "AGRITECH" },
+    { label: "Online / App / Software", value: "SAAS" },
+    { label: "Other", value: "OTHER" },
+];
+
+const BUSINESS_STAGES = [
+    { label: "Just planning / Starting", value: "IDEA" },
+    { label: "Started small work", value: "MVP" },
+    { label: "Running normally", value: "GROWTH" },
+    { label: "Big business", value: "SCALE" },
+];
 
 function StartupForm({ onSubmit, loading }: { onSubmit: (data: any) => void, loading: boolean }) {
     const [formData, setFormData] = useState({
@@ -285,95 +363,148 @@ function StartupForm({ onSubmit, loading }: { onSubmit: (data: any) => void, loa
         stage: "",
         website: "",
     });
+    const [step, setStep] = useState(1);
+
+    const handleStep1Submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        if (form.checkValidity()) {
+            setStep(2);
+        } else {
+            form.reportValidity();
+        }
+    };
+
+    const handleFinalSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        // Backend expects specific enums. The simplified dropdowns map directly to them.
+        onSubmit(formData);
+    };
 
     return (
-        <form onSubmit={(e) => {
-            e.preventDefault();
-            onSubmit({
-                ...formData,
-                stage: mapToEnum(formData.stage),
-            });
-        }} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium mb-2">Startup Name</label>
-                    <input
-                        type="text"
-                        className="w-full p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none"
-                        value={formData.name}
-                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                        required
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-2">WhatsApp Number</label>
-                    <input
-                        type="tel"
-                        className="w-full p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none"
-                        value={formData.phoneNumber}
-                        onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
-                        required
-                    />
-                </div>
-            </div>
+        <form onSubmit={step === 1 ? handleStep1Submit : handleFinalSubmit} className="space-y-6 md:space-y-8">
+            {step === 1 && (
+                <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                        <div>
+                            <label className="block text-base md:text-sm font-medium mb-2 md:mb-3">Business Name</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. My Local Shop"
+                                className="w-full p-4 md:p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none text-lg md:text-base placeholder:text-muted-foreground/60 transition-all shadow-sm focus:shadow-md"
+                                value={formData.name}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-base md:text-sm font-medium mb-2 md:mb-3">WhatsApp Number</label>
+                            <input
+                                type="tel"
+                                placeholder="+91 98765 43210"
+                                className="w-full p-4 md:p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none text-lg md:text-base placeholder:text-muted-foreground/60 transition-all shadow-sm focus:shadow-md"
+                                value={formData.phoneNumber}
+                                onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                required
+                            />
+                        </div>
+                    </div>
 
-            <div>
-                <label className="block text-sm font-medium mb-2">One-Liner</label>
-                <input
-                    type="text"
-                    placeholder="What does your startup do in one sentence?"
-                    className="w-full p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none"
-                    value={formData.oneLiner}
-                    onChange={e => setFormData({ ...formData, oneLiner: e.target.value })}
-                    required
-                    maxLength={140}
-                />
-                <p className="text-xs text-muted-foreground mt-1 text-right">{formData.oneLiner.length}/140</p>
-            </div>
+                    <div>
+                        <label className="block text-base md:text-sm font-medium mb-2 md:mb-3">What does your business do?</label>
+                        <input
+                            type="text"
+                            placeholder="e.g. We sell organic vegetables directly from farmers."
+                            className="w-full p-4 md:p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none text-lg md:text-base placeholder:text-muted-foreground/60 transition-all shadow-sm focus:shadow-md"
+                            value={formData.oneLiner}
+                            onChange={e => setFormData({ ...formData, oneLiner: e.target.value })}
+                            required
+                            maxLength={140}
+                        />
+                        <p className="text-xs md:text-sm text-muted-foreground mt-2 text-right">{formData.oneLiner.length}/140</p>
+                    </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium mb-2">Industry</label>
-                    <select
-                        className="w-full p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none"
-                        value={formData.industry}
-                        onChange={e => setFormData({ ...formData, industry: e.target.value })}
+                    <button
+                        type="submit"
+                        className="w-full py-4 md:py-4 bg-primary text-primary-foreground font-bold text-lg rounded-xl hover:bg-primary/90 transition-all shadow-lg active:scale-[0.98] mt-4"
                     >
-                        <option value="">Select Industry</option>
-                        {INDUSTRIES.map(ind => <option key={ind} value={ind}>{ind}</option>)}
-                    </select>
+                        Next Step
+                    </button>
+                    <p className="text-center text-xs md:text-sm text-muted-foreground">step 1 of 2</p>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium mb-2">Current Stage</label>
-                    <select
-                        className="w-full p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none"
-                        value={formData.stage}
-                        onChange={e => setFormData({ ...formData, stage: e.target.value })}
-                    >
-                        <option value="">Select Stage</option>
-                        {STARTUP_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
+            )}
+
+            {step === 2 && (
+                <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                        <div>
+                            <label className="block text-base md:text-sm font-medium mb-1">Business Type</label>
+                            <p className="text-sm md:text-xs text-muted-foreground mb-3">Choose what best matches your work</p>
+                            <div className="relative">
+                                <select
+                                    className="w-full p-4 md:p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none appearance-none text-lg md:text-base transition-all shadow-sm focus:shadow-md"
+                                    value={formData.industry}
+                                    onChange={e => setFormData({ ...formData, industry: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Select Business Type</option>
+                                    {BUSINESS_TYPES.map(type => <option key={type.label} value={type.value}>{type.label}</option>)}
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
+                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-base md:text-sm font-medium mb-1">Business Status</label>
+                            <p className="text-sm md:text-xs text-muted-foreground mb-3">No problem if you are not sure</p>
+                            <div className="relative">
+                                <select
+                                    className="w-full p-4 md:p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none appearance-none text-lg md:text-base transition-all shadow-sm focus:shadow-md"
+                                    value={formData.stage}
+                                    onChange={e => setFormData({ ...formData, stage: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Select Status</option>
+                                    {BUSINESS_STAGES.map(s => <option key={s.label} value={s.value}>{s.label}</option>)}
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground">
+                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-base md:text-sm font-medium mb-2 md:mb-3">Website (Optional)</label>
+                        <input
+                            type="url"
+                            className="w-full p-4 md:p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none text-lg md:text-base placeholder:text-muted-foreground/60 transition-all shadow-sm focus:shadow-md"
+                            value={formData.website}
+                            onChange={e => setFormData({ ...formData, website: e.target.value })}
+                            placeholder="https://"
+                        />
+                    </div>
+
+                    <div className="flex gap-4">
+                        <button
+                            type="button"
+                            onClick={() => setStep(1)}
+                            className="w-1/3 py-4 bg-secondary text-secondary-foreground font-bold text-lg rounded-xl hover:bg-secondary/80 transition-all active:scale-[0.98]"
+                        >
+                            Back
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-2/3 py-4 bg-primary text-primary-foreground font-bold text-lg rounded-xl hover:bg-primary/90 transition-all shadow-lg active:scale-[0.98] disabled:opacity-50"
+                        >
+                            {loading ? "Launching..." : "Enter Starto"}
+                        </button>
+                    </div>
+                    <p className="text-center text-xs md:text-sm text-muted-foreground">step 2 of 2</p>
                 </div>
-            </div>
-
-            <div>
-                <label className="block text-sm font-medium mb-2">Website (Optional)</label>
-                <input
-                    type="url"
-                    className="w-full p-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary outline-none"
-                    value={formData.website}
-                    onChange={e => setFormData({ ...formData, website: e.target.value })}
-                    placeholder="https://"
-                />
-            </div>
-
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg disabled:opacity-50"
-            >
-                {loading ? "Launching..." : "Enter Starto"}
-            </button>
+            )}
         </form>
     );
 }

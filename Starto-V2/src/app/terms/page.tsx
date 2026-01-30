@@ -5,7 +5,7 @@ export default function TermsPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar />
-            <main className="flex-1 container mx-auto px-4 py-12 max-w-3xl">
+            <main className="flex-1 container mx-auto px-4 pt-32 pb-12 max-w-3xl">
                 <h1 className="text-3xl font-bold mb-8">Terms of Service</h1>
 
                 <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none space-y-8">

@@ -13,12 +13,14 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        log("ONBOARDING_PAYLOAD", body); // verify payload
-        const { role, data } = body;
-        const email = session.user.email; // Source of truth from session
+        log("ONBOARDING_PAYLOAD", body);
 
-        if (!role || !data) {
-            return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+        // New Payload Structure: { role, location, userDetails, profileData }
+        const { role, location, userDetails, profileData } = body;
+        const email = session.user.email;
+
+        if (!role || !profileData || !location) {
+            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
         const user = await prisma.user.findUnique({ where: { email } });
@@ -26,206 +28,219 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        // Shared Location Object extraction (if consistent)
-        const locationData = {
-            latitude: data.latitude,
-            longitude: data.longitude,
-            city: data.city,
-            state: data.state,
-            country: data.country,
-            pincode: data.pincode,
-            address: data.address, // Display Only
-        };
+        // 1. Transactional Update: User (Base + Location) + Profile
+        await prisma.$transaction(async (tx) => {
 
-        // REMOVED: User Table updates. This endpoint is now strictly for Role Profile updates.
-        // Clients must call PATCH /api/users/me for Base User Data (Name, Phone, Location, Active Role, Onboarded).
-
-        // 1. Update the specific profile
-        if (role === "startup") {
-            log("STARTUP_UPDATE_START", { userId: user.id });
-            await prisma.startupProfile.upsert({
-                where: { ownerId: user.id },
-                update: {
-                    name: data.name,
-                    industry: data.industry,
-                    stage: data.stage,
-                    teamSize: data.teamSize,
-                    fundingRound: data.fundingRound,
-                    fundingNeeded: data.fundingNeeded,
-                    minHiringBudget: data.minHiringBudget,
-                    maxHiringBudget: data.maxHiringBudget,
-                    oneLiner: data.oneLiner,
-                    description: data.description,
-                    website: data.website,
-                    isActive: true, // Mark as Active
-                },
-                create: {
-                    ownerId: user.id,
-                    name: data.name || "My Startup",
-                    industry: data.industry,
-                    stage: data.stage,
-                    teamSize: data.teamSize,
-                    fundingRound: data.fundingRound,
-                    fundingNeeded: data.fundingNeeded,
-                    minHiringBudget: data.minHiringBudget,
-                    maxHiringBudget: data.maxHiringBudget,
-                    oneLiner: data.oneLiner,
-                    description: data.description,
-                    website: data.website,
-                    isActive: true,
+            // A. Update User Base Data
+            await tx.user.update({
+                where: { id: user.id },
+                data: {
+                    name: userDetails?.name || user.name, // Prefer new name if provided
+                    phoneNumber: userDetails?.phoneNumber,
+                    activeRole: role.toUpperCase(), // Set Active Role
+                    onboarded: true, // Mark as Onboarded
+                    // Location
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    city: location.city,
+                    state: location.state,
+                    country: location.country,
+                    pincode: location.pincode,
                 }
             });
-            log("STARTUP_UPDATE_SUCCESS", {});
-        } else if (role === "freelancer") {
-            // ... freelancer update ...
-            log("FREELANCER_UPDATE_START", { userId: user.id });
-            await prisma.freelancerProfile.upsert({
-                where: { userId: user.id },
-                update: {
-                    headline: data.headline,
-                    skills: data.skills,
-                    experience: data.experience,
-                    availability: data.availability,
-                    workType: data.workType,
-                    portfolio: data.portfolio,
-                    github: data.github,
-                    linkedin: data.linkedin,
-                    isActive: true, // Mark as Active
-                },
-                create: {
-                    userId: user.id,
-                    headline: data.headline,
-                    skills: data.skills,
-                    experience: data.experience,
-                    availability: data.availability,
-                    workType: data.workType,
-                    portfolio: data.portfolio,
-                    github: data.github,
-                    linkedin: data.linkedin,
-                    isActive: true,
-                }
-            });
-            log("FREELANCER_UPDATE_SUCCESS", {});
-        } else if (role === "investor") {
-            log("INVESTOR_UPDATE_START", { userId: user.id, data });
-            try {
-                // Ensure profile exists first? The previous flow created it at 'role selection' time?
-                // Wait. 'api/user/set-role' creates the EMPTY profile.
-                // 'api/onboarding/complete' updates it.
-                // If set-role wasn't called or failed, this update will fail if using `.update`.
-                // Prisma `.update` requires existence. `.upsert` is safer.
-                // BUT User flow says: Sign up -> Role Selection (creates profile) -> Onboarding (updates profile).
-                // Let's assume it exists. If not, we should probably UPSERT.
 
-                await prisma.investorProfile.upsert({
+            // B. Upsert Specific Profile
+            if (role === "startup") {
+                await tx.startupProfile.upsert({
+                    where: { ownerId: user.id },
+                    update: {
+                        name: profileData.name,
+                        industry: profileData.industry,
+                        stage: profileData.stage || undefined,
+                        teamSize: profileData.teamSize,
+                        fundingRound: profileData.fundingRound || undefined,
+                        fundingNeeded: profileData.fundingNeeded,
+                        minHiringBudget: profileData.minHiringBudget,
+                        maxHiringBudget: profileData.maxHiringBudget,
+                        oneLiner: profileData.oneLiner,
+                        description: profileData.description,
+                        website: profileData.website,
+                        isActive: true,
+                        // Update Location fields specifically in Profile too
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        city: location.city,
+                        state: location.state,
+                        country: location.country,
+                        pincode: location.pincode,
+                        address: location.address // Persist full address string
+                    },
+                    create: {
+                        ownerId: user.id,
+                        name: profileData.name || "My Startup",
+                        industry: profileData.industry,
+                        stage: profileData.stage || undefined,
+                        teamSize: profileData.teamSize,
+                        fundingRound: profileData.fundingRound || undefined,
+                        fundingNeeded: profileData.fundingNeeded,
+                        minHiringBudget: profileData.minHiringBudget,
+                        maxHiringBudget: profileData.maxHiringBudget,
+                        oneLiner: profileData.oneLiner,
+                        description: profileData.description,
+                        website: profileData.website,
+                        isActive: true,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        city: location.city,
+                        state: location.state,
+                        country: location.country,
+                        pincode: location.pincode,
+                        address: location.address
+                    }
+                });
+            } else if (role === "freelancer") {
+                await tx.freelancerProfile.upsert({
                     where: { userId: user.id },
                     update: {
-                        investorType: data.investorType,
-                        minTicketSize: data.minTicketSize ? Number(data.minTicketSize) : undefined,
-                        maxTicketSize: data.maxTicketSize ? Number(data.maxTicketSize) : undefined,
-                        sectors: data.sectors,
-                        stages: data.stages,
-                        isPublic: true,
-                        isActive: true, // Mark as Active
-                        thesisNote: data.thesisNote,
+                        headline: profileData.headline,
+                        skills: profileData.skills,
+                        experience: profileData.experience || undefined,
+                        availability: profileData.availability || undefined,
+                        workType: profileData.workType || undefined,
+                        portfolio: profileData.portfolio,
+                        github: profileData.github,
+                        linkedin: profileData.linkedin,
+                        isActive: true,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        city: location.city,
+                        state: location.state,
+                        country: location.country,
+                        pincode: location.pincode,
+                        address: location.address
                     },
                     create: {
                         userId: user.id,
-                        investorType: data.investorType,
-                        minTicketSize: data.minTicketSize ? Number(data.minTicketSize) : undefined,
-                        maxTicketSize: data.maxTicketSize ? Number(data.maxTicketSize) : undefined,
-                        sectors: data.sectors,
-                        stages: data.stages,
-                        isPublic: true,
-                        isActive: true, // Mark as Active
-                        thesisNote: data.thesisNote,
+                        headline: profileData.headline,
+                        skills: profileData.skills,
+                        experience: profileData.experience || undefined,
+                        availability: profileData.availability || undefined,
+                        workType: profileData.workType || undefined,
+                        portfolio: profileData.portfolio,
+                        github: profileData.github,
+                        linkedin: profileData.linkedin,
+                        isActive: true,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        city: location.city,
+                        state: location.state,
+                        country: location.country,
+                        pincode: location.pincode,
+                        address: location.address
                     }
                 });
-                log("INVESTOR_UPDATE_SUCCESS", {});
-            } catch (e: any) {
-                log("INVESTOR_UPDATE_ERROR", { error: e.message });
-                throw e;
+            } else if (role === "investor") {
+                await tx.investorProfile.upsert({
+                    where: { userId: user.id },
+                    update: {
+                        investorType: profileData.investorType || undefined,
+                        minTicketSize: profileData.minTicketSize ? Number(profileData.minTicketSize) : undefined,
+                        maxTicketSize: profileData.maxTicketSize ? Number(profileData.maxTicketSize) : undefined,
+                        sectors: profileData.sectors,
+                        stages: profileData.stages,
+                        isPublic: true,
+                        isActive: true,
+                        thesisNote: profileData.thesisNote,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        city: location.city,
+                        state: location.state,
+                        country: location.country,
+                        pincode: location.pincode,
+                        address: location.address
+                    },
+                    create: {
+                        userId: user.id,
+                        investorType: profileData.investorType || undefined,
+                        minTicketSize: profileData.minTicketSize ? Number(profileData.minTicketSize) : undefined,
+                        maxTicketSize: profileData.maxTicketSize ? Number(profileData.maxTicketSize) : undefined,
+                        sectors: profileData.sectors,
+                        stages: profileData.stages,
+                        isPublic: true,
+                        isActive: true,
+                        thesisNote: profileData.thesisNote,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        city: location.city,
+                        state: location.state,
+                        country: location.country,
+                        pincode: location.pincode,
+                        address: location.address
+                    }
+                });
+            } else if (role === "provider") {
+                await tx.providerProfile.upsert({
+                    where: { userId: user.id },
+                    update: {
+                        companyName: profileData.companyName,
+                        providerType: profileData.providerType || undefined,
+                        capacity: profileData.capacity ? Number(profileData.capacity) : undefined,
+                        minPrice: profileData.minPrice ? Number(profileData.minPrice) : undefined,
+                        maxPrice: profileData.maxPrice ? Number(profileData.maxPrice) : undefined,
+                        priceUnit: profileData.priceUnit,
+                        description: profileData.description,
+                        isActive: true,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        city: location.city,
+                        state: location.state,
+                        country: location.country,
+                        pincode: location.pincode,
+                        address: location.address
+                    },
+                    create: {
+                        userId: user.id,
+                        companyName: profileData.companyName,
+                        providerType: profileData.providerType || undefined,
+                        capacity: profileData.capacity ? Number(profileData.capacity) : undefined,
+                        minPrice: profileData.minPrice ? Number(profileData.minPrice) : undefined,
+                        maxPrice: profileData.maxPrice ? Number(profileData.maxPrice) : undefined,
+                        priceUnit: profileData.priceUnit,
+                        description: profileData.description,
+                        isActive: true,
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                        city: location.city,
+                        state: location.state,
+                        country: location.country,
+                        pincode: location.pincode,
+                        address: location.address
+                    }
+                });
             }
-        } else if (role === "provider") {
-            log("PROVIDER_UPDATE_START", { userId: user.id, data });
-            await prisma.providerProfile.upsert({
-                where: { userId: user.id },
-                update: {
-                    companyName: data.companyName,
-                    providerType: data.providerType,
-                    capacity: data.capacity ? Number(data.capacity) : undefined,
-                    minPrice: data.minPrice ? Number(data.minPrice) : undefined,
-                    maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined,
-                    priceUnit: data.priceUnit,
-                    description: data.description,
-                    isActive: true, // Mark as Active
-                },
-                create: {
-                    userId: user.id,
-                    companyName: data.companyName,
-                    providerType: data.providerType,
-                    capacity: data.capacity ? Number(data.capacity) : undefined,
-                    minPrice: data.minPrice ? Number(data.minPrice) : undefined,
-                    maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined,
-                    priceUnit: data.priceUnit,
-                    description: data.description,
-                    isActive: true, // Mark as Active
-                }
-            });
-            log("PROVIDER_UPDATE_SUCCESS", {});
-        }
+        });
 
-        // REMOVED: Final User table update (onboarded, activeRole, phone, location).
-        // This responsibility has moved to PATCH /api/users/me
-
-        // 2. Handle Referral Attribution
-        // We do this server-side via cookie to ensure attribution even if client doesn't pass it
+        // 2. Handle Referral Attribution (Non-blocking)
         try {
             const { cookies } = await import("next/headers");
-            const cookieStore = await cookies(); // await for Next.js 15+ compat
+            const cookieStore = await cookies();
             const inviteCode = cookieStore.get("starto_invite_code")?.value;
 
             if (inviteCode && !user.referredById) {
                 const invite = await prisma.invite.findUnique({ where: { code: inviteCode } });
-                // Prevent self-referral
                 if (invite && invite.inviterId !== user.id) {
                     await prisma.user.update({
                         where: { id: user.id },
                         data: { referredById: invite.inviterId }
                     });
-                    log("REFERRAL_ATTRIBUTED", { userId: user.id, inviterId: invite.inviterId, code: inviteCode });
                 }
             }
         } catch (refError) {
-            // Non-blocking error
             console.error("Referral Attribution Failed", refError);
         }
 
+        return NextResponse.json({ success: true, role });
 
-        // 3. Sync to Google Sheets (Async / Fire-and-Forget)
-        // We do this inside a try-catch but don't await likely or don't block.
-        // For Vercel/Serverless, we MUST await, otherwise the lambda freezes.
-        // Since user wants it "after signup", this is the best place (Onboarding Complete).
-        if (process.env.SHEET_ID && process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
-            try {
-                const { addUserToSheet } = await import("@/lib/googleSheet");
-                await addUserToSheet({
-                    user_id: user.id,
-                    name: user.name || data.name || "Unknown", // data.name used for Startup, else user.name
-                    email: user.email,
-                    role: user.activeRole || role,
-                    signup_date: new Date().toISOString().split('T')[0],
-                    city: data.city,
-                    state: data.state
-                });
-                log("SHEETS_SYNC_SUCCESS", { userId: user.id });
-            } catch (sheetErr) {
-                console.error("SHEETS_SYNC_ERROR", sheetErr);
-                // Swallow error so we don't fail the onboarding response
-            }
-        }
-
-        return NextResponse.json({ success: true });
     } catch (error: any) {
         logError("ONBOARDING_ERROR", error);
         return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });

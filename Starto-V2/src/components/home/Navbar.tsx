@@ -89,13 +89,27 @@ export function Navbar() {
         setMobileMenuOpen(false);
     }, [pathname]);
 
+    // Lock Body Scroll when Menu Open
+    React.useEffect(() => {
+        if (mobileMenuOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "unset";
+        }
+        return () => { document.body.style.overflow = "unset"; }
+    }, [mobileMenuOpen]);
+
     return (
         <motion.header
             className={cn(
-                "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
+                "fixed top-0 left-0 right-0 transition-all duration-300 border-b",
                 isScrolled
-                    ? "bg-background/90 backdrop-blur-md border-border shadow-sm py-3"
-                    : "bg-background/70 backdrop-blur-md border-border/50 py-4"
+                    ? "bg-white/90 dark:bg-black/90 backdrop-blur-md border-gray-200 dark:border-white/10 shadow-sm py-3"
+                    : "bg-white/70 dark:bg-black/70 backdrop-blur-md border-transparent py-4",
+                // Z-index Hierarchy: Mobile Menu (100) > Header (50) > Page (0)
+                // When mobile menu is open, this header shouldn't be z-50 otherwise it fights the overlay if not carefully managed.
+                // However, the overlay is inside the header. So header z-50 is fine if overlay is z-[100] relative to header or fixed to viewport.
+                "z-50"
             )}
             initial={{ y: -100 }}
             animate={{ y: 0 }}
@@ -109,7 +123,7 @@ export function Navbar() {
                         alt="Starto"
                         width={240}
                         height={80}
-                        className="h-10 md:h-14 w-auto object-contain transition-transform group-hover:scale-105 dark:invert"
+                        className="h-12 md:h-14 w-auto object-contain transition-transform group-hover:scale-105 dark:invert"
                         priority
                     />
                 </Link>
@@ -123,7 +137,7 @@ export function Navbar() {
                         onMouseEnter={() => setRolesOpen(true)}
                         onMouseLeave={() => setRolesOpen(false)}
                     >
-                        <button className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                        <button className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white transition-colors">
                             Roles <ChevronDown className={cn("w-4 h-4 transition-transform", rolesOpen ? "rotate-180" : "")} />
                         </button>
 
@@ -165,7 +179,7 @@ export function Navbar() {
                     {user ? (
                         <div className="flex items-center gap-4">
                             {!pathname?.startsWith("/dashboard") && (
-                                <Button size="sm" variant="outline" className="rounded-full px-6 font-semibold hidden md:flex" asChild>
+                                <Button size="sm" variant="outline" className="rounded-full px-6 font-semibold hidden md:flex dark:border-white/20 dark:text-white dark:hover:bg-white/10" asChild>
                                     <Link href="/dashboard">Go to Dashboard</Link>
                                 </Button>
                             )}
@@ -173,7 +187,7 @@ export function Navbar() {
                         </div>
                     ) : (
                         <>
-                            <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                            <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white transition-colors">
                                 Login
                             </Link>
                             <Button size="sm" className="rounded-full px-6 font-semibold shadow-lg shadow-primary/20" asChild>
@@ -218,7 +232,7 @@ export function Navbar() {
                                         alt="Starto"
                                         width={140}
                                         height={45}
-                                        className="h-10 w-auto object-contain dark:invert"
+                                        className="h-12 w-auto object-contain dark:invert"
                                     />
                                 </Link>
                                 <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)} className="rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900">
@@ -239,7 +253,7 @@ export function Navbar() {
                                             <Link
                                                 key={item.href}
                                                 href={item.href}
-                                                className="flex items-center gap-4 p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 active:bg-zinc-200 transition-colors text-zinc-900 dark:text-zinc-100 group"
+                                                className="flex items-center gap-4 p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 active:bg-zinc-200 transition-colors text-foreground group"
                                                 onClick={() => setMobileMenuOpen(false)}
                                             >
                                                 <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
@@ -271,11 +285,11 @@ export function Navbar() {
                                             <div className="px-2 mb-2 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                                 Platform
                                             </div>
-                                            <Link href="/features" className="flex items-center gap-4 p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors text-zinc-900 dark:text-zinc-100" onClick={() => setMobileMenuOpen(false)}>
+                                            <Link href="/features" className="flex items-center gap-4 p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors text-foreground" onClick={() => setMobileMenuOpen(false)}>
                                                 <Rocket className="w-5 h-5 text-primary" />
                                                 <span className="font-semibold text-lg">Features</span>
                                             </Link>
-                                            <Link href="/about" className="flex items-center gap-4 p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors text-zinc-900 dark:text-zinc-100" onClick={() => setMobileMenuOpen(false)}>
+                                            <Link href="/about" className="flex items-center gap-4 p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors text-foreground" onClick={() => setMobileMenuOpen(false)}>
                                                 <Users className="w-5 h-5 text-primary" />
                                                 <span className="font-semibold text-lg">About Us</span>
                                             </Link>
@@ -313,7 +327,7 @@ function NavItem({ href, children }: { href: string; children: React.ReactNode }
     return (
         <Link
             href={href}
-            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white transition-colors relative group"
         >
             {children}
             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />

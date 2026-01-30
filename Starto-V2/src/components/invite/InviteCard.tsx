@@ -7,7 +7,9 @@ import { Copy, Check, Share2, MessageCircle } from "lucide-react"
 import { toast } from "sonner"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export function InviteCard() {
+import { cn } from "@/lib/utils"
+
+export function InviteCard({ className }: { className?: string }) {
     const [inviteCode, setInviteCode] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
@@ -59,7 +61,7 @@ export function InviteCard() {
     if (!inviteCode) return null; // Hide if failed
 
     return (
-        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20 overflow-hidden relative">
+        <Card className={cn("bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20 overflow-hidden relative", className)}>
             <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="space-y-2 text-center md:text-left">
                     <h3 className="text-xl font-bold flex items-center justify-center md:justify-start gap-2">

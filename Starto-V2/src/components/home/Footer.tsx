@@ -49,6 +49,12 @@ export function Footer() {
                     </div>
                 </div>
             </div>
-        </footer>
+            {/* Giant Footer Text */}
+            <div className="w-full border-t border-gray-100 dark:border-zinc-900 py-12 md:py-16 flex justify-center items-center overflow-hidden px-4">
+                <h1 className="text-[10vw] md:text-[11vw] leading-none font-medium tracking-tighter text-black dark:text-white opacity-90 select-none text-center whitespace-nowrap">
+                    Build where it works
+                </h1>
+            </div>
+        </footer >
     );
 }

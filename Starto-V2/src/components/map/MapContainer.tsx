@@ -21,12 +21,13 @@ interface MapContainerProps {
     isLoaded: boolean;
     children?: ReactNode;
     userLocation?: { lat: number; lng: number } | null;
+    zoom?: number; // Added zoom prop
     onLoad?: (map: google.maps.Map) => void;
     onClick?: (e: google.maps.MapMouseEvent) => void;
     options?: google.maps.MapOptions;
 }
 
-export default function MapContainer({ isLoaded, children, userLocation, onLoad, onClick, options }: MapContainerProps) {
+export default function MapContainer({ isLoaded, children, userLocation, zoom = 13, onLoad, onClick, options }: MapContainerProps) {
     const [map, setMap] = useState<google.maps.Map | null>(null);
 
     const handleLoad = useCallback((map: google.maps.Map) => {
@@ -38,7 +39,8 @@ export default function MapContainer({ isLoaded, children, userLocation, onLoad,
         setMap(null);
     }, []);
 
-    if (!isLoaded) {
+    // Safety check for google object
+    if (!isLoaded || typeof google === "undefined") {
         return (
             <div className="w-full h-full flex items-center justify-center bg-[#0b0b0b] text-muted-foreground animate-pulse">
                 Loading Map...
@@ -50,7 +52,7 @@ export default function MapContainer({ isLoaded, children, userLocation, onLoad,
         <GoogleMap
             mapContainerStyle={containerStyle}
             center={userLocation || center}
-            zoom={13}
+            zoom={zoom}
             onLoad={handleLoad}
             onUnmount={onUnmount}
             onClick={onClick}
