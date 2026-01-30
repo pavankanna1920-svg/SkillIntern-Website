@@ -81,7 +81,7 @@ export function LivePreview() {
                             style={{ left: `${card.x}%`, top: `${card.y}%` }}
                         >
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm
-                                ${card.type === 'FOUNDER' ? 'bg-red-500' : card.type === 'FREELANCER' ? 'bg-blue-500' : 'bg-INVESTOR' ? 'bg-green-500' : 'bg-purple-500'}`}
+                                ${card.type === 'FOUNDER' ? 'bg-red-500' : card.type === 'FREELANCER' ? 'bg-blue-500' : card.type === 'INVESTOR' ? 'bg-green-500' : 'bg-purple-500'}`}
                             >
                                 {card.name[0]}
                             </div>

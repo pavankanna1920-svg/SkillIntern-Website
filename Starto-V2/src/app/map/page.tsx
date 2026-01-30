@@ -88,8 +88,22 @@ export default function V2MapPage() {
     // Handle Card Click (Focus Map)
     const handleCardClick = (item: Need | Helper) => {
         setSelectedItem(item);
-        if (item.latitude && item.longitude) {
-            setMapCenter({ lat: item.latitude, lng: item.longitude });
+
+        // Extract coordinates safely based on type
+        // Check if 'founder' exists to distinguish "Need" from "Helper"
+        let lat: number | undefined;
+        let lng: number | undefined;
+
+        if ('founder' in item) {
+            lat = item.founder.latitude;
+            lng = item.founder.longitude;
+        } else {
+            lat = item.latitude;
+            lng = item.longitude;
+        }
+
+        if (lat && lng) {
+            setMapCenter({ lat, lng });
             // On mobile, switch to map view automatically
             if (window.innerWidth < 768) {
                 setShowMapMobile(true);
