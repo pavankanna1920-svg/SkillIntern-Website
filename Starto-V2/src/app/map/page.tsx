@@ -95,11 +95,13 @@ export default function V2MapPage() {
         let lng: number | undefined;
 
         if ('founder' in item) {
-            lat = item.founder.latitude;
-            lng = item.founder.longitude;
+            const need = item as Need;
+            lat = need.founder?.latitude;
+            lng = need.founder?.longitude;
         } else {
-            lat = item.latitude;
-            lng = item.longitude;
+            const helper = item as Helper;
+            lat = helper.latitude;
+            lng = helper.longitude;
         }
 
         if (lat && lng) {
