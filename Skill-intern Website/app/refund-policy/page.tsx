@@ -40,14 +40,14 @@ export default function RefundPolicyPage() {
                         duplicate charges, or platform issues—you may request a refund. Such
                         requests must be emailed to **Operation@skillintern.in** within
                         three days of the transaction. Each request will be reviewed
-                        individually, and you’ll receive a response within seven working
+                        individually, and you’ll receive a response within three working
                         days.
                     </p>
 
                     <p>
                         Refund approvals are based on your course access, progress, and
                         engagement level. If approved, the refund will be processed to your
-                        original payment method and may take seven to ten business days,
+                        original payment method and may take three business days,
                         depending on your bank or payment provider.
                     </p>
 
