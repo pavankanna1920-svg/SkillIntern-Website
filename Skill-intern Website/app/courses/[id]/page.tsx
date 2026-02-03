@@ -252,7 +252,7 @@ export default function CourseDetailsPage() {
                                     <button className={`w-full ${themeColor} hover:opacity-90 text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-purple-200 transition-all transform active:scale-95 mb-4`}>
                                         Enroll Now
                                     </button>
-                                    <p className="text-center text-xs text-gray-500 mb-6">30-Day Money-Back Guarantee</p>
+                                    <p className="text-center text-xs text-gray-500 mb-6">If you didn't get access within 3 days, the amount will be refunded.</p>
 
                                     <div className="space-y-4 pt-6 border-t border-gray-100">
                                         <h4 className="font-bold text-gray-900 text-sm">This Course Includes:</h4>
