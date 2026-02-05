@@ -32,18 +32,12 @@ export default function CertificatePage() {
                             <div className="relative aspect-[1.414/1] w-full overflow-hidden rounded-lg bg-gray-100 border border-gray-200">
                                 {/* Placeholder for certificate image */}
                                 <Image
-                                    src="https://images.unsplash.com/photo-1547658719-da2b51169166?q=80&w=1000&auto=format&fit=crop" // Temporary placeholder or use a specific certificate asset if available
+                                    src="/images/certificate_cyber_security.jpg"
                                     alt="Certificate Preview"
                                     fill
                                     className="object-cover opacity-80"
                                 />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl shadow-lg text-center">
-                                        <Award className="w-12 h-12 text-blue-600 mx-auto mb-2" />
-                                        <h3 className="text-lg font-bold text-gray-900">Certificate of Completion</h3>
-                                        <p className="text-sm text-gray-500">SkillIntern Certification</p>
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
                     </div>

@@ -42,7 +42,7 @@ export default function UnlockPotential() {
             description: "Get recognized worldwide with our accredited certificates",
             badge: "50+ Countries",
             bg: "bg-teal-500",
-            image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1000&auto=format&fit=crop", // Laptop/Global
+            image: "/images/certificate_python.jpg",
         },
         {
             icon: <Sparkles className="w-8 h-8 text-white" />,
