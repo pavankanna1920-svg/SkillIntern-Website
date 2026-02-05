@@ -125,10 +125,11 @@ export default function AboutPage() {
                     <div className="lg:w-1/2 relative">
                         {/* Placeholder for AI Illustration - Using a generic tech team image for now */}
                         <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 transform rotate-2 hover:rotate-0 transition-transform duration-500">
-                            <img
+                            <Image
                                 src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop"
                                 alt="Team Collaboration"
-                                className="w-full h-auto object-cover"
+                                fill
+                                className="object-cover"
                             />
                         </div>
                         {/* Floating Badge */}
@@ -187,10 +188,11 @@ export default function AboutPage() {
                         </div>
                         <div className="md:w-1/2">
                             <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
-                                <img
+                                <Image
                                     src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=2070&auto=format&fit=crop"
                                     alt="Our Mission"
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    fill
+                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                                 <div className="absolute bottom-6 left-6 text-white">
@@ -232,10 +234,11 @@ export default function AboutPage() {
                         </div>
                         <div className="md:w-1/2">
                             <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
-                                <img
+                                <Image
                                     src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop"
                                     alt="Our Vision"
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    fill
+                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-purple-900/60 to-transparent"></div>
                                 <div className="absolute bottom-6 left-6 text-white">

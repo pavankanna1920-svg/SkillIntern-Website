@@ -73,7 +73,7 @@ export default function StatsMarquee() {
         <section className="py-12 bg-purple-50 overflow-hidden">
             <div className="container mx-auto px-4 text-center mb-10">
                 <h2 className="text-gray-800 font-bold uppercase tracking-wide text-sm mb-2">
-                    India's No. 1 Platform For
+                    India&apos;s No. 1 Platform For
                 </h2>
                 <h3 className="text-2xl md:text-3xl font-bold text-blue-600 mb-6">
                     Online Learning || Skill Up Your Future
@@ -131,7 +131,16 @@ export default function StatsMarquee() {
     );
 }
 
-function MarqueeCard({ card }: { card: any }) {
+interface MarqueeCardProps {
+    card: {
+        bg: string;
+        icon: string;
+        value: string;
+        label: string;
+    }
+}
+
+function MarqueeCard({ card }: MarqueeCardProps) {
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center min-w-[200px] md:min-w-[240px]">
             <div className={`w-12 h-12 rounded-full ${card.bg} flex items-center justify-center text-2xl mb-3`}>

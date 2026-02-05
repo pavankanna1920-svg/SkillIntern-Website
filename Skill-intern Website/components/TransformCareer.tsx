@@ -8,7 +8,7 @@ export default function TransformCareer() {
             <div className="container mx-auto px-4 md:px-6">
                 <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 p-12 md:p-16 text-center shadow-2xl">
                     {/* Background Texture/Effects */}
-                    <div className="absolute inset-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+                    <div className="absolute inset-0 opacity-20 bg-[url('/noise.svg')]"></div>
                     <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
                     <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Instagram, Linkedin, Youtube, MapPin, Phone, Mail } from "lucide-react";
 
@@ -11,10 +12,11 @@ export default function Footer() {
                     {/* Brand Column */}
                     <div className="space-y-6">
                         <Link href="/" className="inline-block relative h-12 w-48 mb-4">
-                            <img
+                            <Image
                                 src="/images/logo_footer.png"
                                 alt="Inspire AI"
-                                className="h-full w-auto object-contain"
+                                fill
+                                className="object-contain"
                             />
                         </Link>
                         <p className="text-sm leading-relaxed text-gray-400">

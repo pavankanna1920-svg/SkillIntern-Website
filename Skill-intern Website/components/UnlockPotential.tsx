@@ -84,7 +84,7 @@ export default function UnlockPotential() {
                                 <div className="absolute inset-0 bg-gradient-to-b from-[#0f1025]/90 to-[#0f1025] z-10"></div>
 
                                 {/* Subtle background pattern/image effect */}
-                                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-0"></div>
+                                <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-20 z-0"></div>
                             </div>
 
                             <div className="relative z-20 p-8 h-full flex flex-col">

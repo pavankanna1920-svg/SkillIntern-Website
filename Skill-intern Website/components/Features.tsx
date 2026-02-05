@@ -77,7 +77,14 @@ export default function Features() {
     );
 }
 
-function BenefitCard({ title, description, icon, color }: any) {
+interface BenefitCardProps {
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+    color: string;
+}
+
+function BenefitCard({ title, description, icon, color }: BenefitCardProps) {
     const colorClasses: { [key: string]: string } = {
         pink: "bg-pink-50 border-pink-100 text-pink-600",
         purple: "bg-purple-50 border-purple-100 text-purple-600",
