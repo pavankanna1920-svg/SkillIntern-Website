@@ -112,6 +112,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "Security",
+        certificateImage: "/images/certificate_cyber_security.jpg",
         features: ["Live Hacking Labs", "CEH Certification Prep", "Network Security", "Cyber Forensics"],
         learningOutcomes: ["Understand Ethical Hacking", "Network Scanning", "Vulnerability Assessment", "System Hacking"],
         requirements: ["Basic IT knowledge", "Laptop with 8GB RAM"],
@@ -142,6 +143,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "App Dev",
+        certificateImage: "/images/certificate_python.jpg",
         features: ["Build 10+ Apps", "Publication Support", "Flutter & React Native"],
         learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
@@ -161,6 +163,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "AI",
+        certificateImage: "/images/certificate_python.jpg",
         features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
     {
@@ -179,6 +182,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "Marketing",
+        certificateImage: "/images/certificate_python.jpg",
         features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
     {
@@ -197,6 +201,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "Data",
+        certificateImage: "/images/certificate_python.jpg",
         features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
     {
@@ -215,6 +220,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "Design",
+        certificateImage: "/images/certificate_python.jpg",
         features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
     {
@@ -233,6 +239,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "Cloud",
+        certificateImage: "/images/certificate_python.jpg",
         features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
     {
@@ -251,6 +258,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "HR",
+        certificateImage: "/images/certificate_python.jpg",
         features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
     {
@@ -269,6 +277,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "Data",
+        certificateImage: "/images/certificate_python.jpg",
         features: ["Data Visualization", "Statistical Analysis", "Python & R", "Big Data technologies"],
         learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
@@ -288,6 +297,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "AI",
+        certificateImage: "/images/certificate_python.jpg",
         features: ["Supervised Learning", "Unsupervised Learning", "Neural Networks", "Deep Learning"],
         learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
@@ -307,6 +317,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "Design",
+        certificateImage: "/images/certificate_python.jpg",
         features: ["Wireframing", "Prototyping", "User Research", "Figma & Adobe XD"],
         learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
@@ -326,6 +337,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "Finance",
+        certificateImage: "/images/certificate_python.jpg",
         features: ["Financial Modeling", "Risk Management", "Investment Analysis", "Corporate Finance"],
         learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     },
@@ -345,6 +357,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "Hardware",
+        certificateImage: "/images/certificate_python.jpg",
         features: ["Digital Circuit Design", "Verilog/VHDL", "FPGA Programming", "SoC Architecture"],
         learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
     }
