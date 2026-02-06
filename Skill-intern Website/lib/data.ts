@@ -16,6 +16,7 @@ export const courses = [
         updatedDate: "7/25/2025",
         language: "English",
         tag: "Web Design",
+        certificateImage: "/images/certificate_python.jpg",
         features: [
             "Live Interactive Sessions",
             "Real-world Projects",

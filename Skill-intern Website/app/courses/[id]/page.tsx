@@ -186,12 +186,22 @@ export default function CourseDetailsPage() {
                                 </button>
                             </div>
                             <div className="w-full md:w-1/3 bg-gray-100 rounded-lg p-2 border border-gray-200 shadow-inner">
-                                {/* Placeholder for Certificate Image */}
-                                <div className="aspect-[4/3] bg-white border border-gray-200 flex flex-col items-center justify-center p-4 text-center">
-                                    <Award className={`w-12 h-12 ${themeColor.replace("bg-", "text-")} mb-2`} />
-                                    <h4 className="font-serif text-gray-900 font-bold">CERTIFICATE</h4>
-                                    <p className="text-[10px] text-gray-500 mt-1">OF COMPLETION</p>
-                                </div>
+                                {course.certificateImage ? (
+                                    <div className="aspect-[4/3] bg-white border border-gray-200 relative overflow-hidden rounded">
+                                        <img
+                                            src={course.certificateImage}
+                                            alt={`${course.title} Certificate`}
+                                            className="w-full h-full object-contain"
+                                        />
+                                    </div>
+                                ) : (
+                                    /* Placeholder for Certificate Image */
+                                    <div className="aspect-[4/3] bg-white border border-gray-200 flex flex-col items-center justify-center p-4 text-center">
+                                        <Award className={`w-12 h-12 ${themeColor.replace("bg-", "text-")} mb-2`} />
+                                        <h4 className="font-serif text-gray-900 font-bold">CERTIFICATE</h4>
+                                        <p className="text-[10px] text-gray-500 mt-1">OF COMPLETION</p>
+                                    </div>
+                                )}
                             </div>
                         </section>
 
