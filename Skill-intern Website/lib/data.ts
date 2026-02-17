@@ -114,17 +114,60 @@ export const courses = [
         tag: "Security",
         certificateImage: "/images/certificate_cyber_security.jpg",
         features: ["Live Hacking Labs", "CEH Certification Prep", "Network Security", "Cyber Forensics"],
-        learningOutcomes: ["Understand Ethical Hacking", "Network Scanning", "Vulnerability Assessment", "System Hacking"],
-        requirements: ["Basic IT knowledge", "Laptop with 8GB RAM"],
+        learningOutcomes: [
+            "Understand the phases of Ethical Hacking",
+            "Perform Network Scanning and Enumeration",
+            "Conduct Vulnerability Assessments",
+            "Exploit System Vulnerabilities using Metasploit",
+            "Web Application Penetration Testing",
+            "Wireless Network Hacking & Security"
+        ],
+        requirements: [
+            "Basic knowledge of networking concepts (IP, TCP/UDP)",
+            "Familiarity with Linux command line is helpful",
+            "A laptop with at least 8GB RAM (16GB recommended for VMs)",
+            "Curiosity and ethical mindset"
+        ],
         syllabus: [
             {
-                title: "Module 1: Introduction to Cyber Security",
+                title: "Module 1: Introduction & Networking",
                 duration: "2 Weeks",
                 lessons: "8 Lessons",
-                content: ["Basics of Networking", "Cyber Laws", "Setting up Lab"]
+                content: ["Cyber Security Fundamentals", "Networking Basics (OSI Model, TCP/IP)", "Linux Essentials for Hackers", "Setting up a Virtual Hacking Lab"]
+            },
+            {
+                title: "Module 2: Reconnaissance & Scanning",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Footprinting & Reconnaissance", "Network Scanning Techniques (Nmap)", "Enumeration", "Vulnerability Analysis"]
+            },
+            {
+                title: "Module 3: System Hacking",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["Gaining Access", "Privilege Escalation", "Maintaining Access", "Clearing Logs", "Malware Threats"]
+            },
+            {
+                title: "Module 4: Web & Network Security",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Web App Vulnerabilities (OWASP Top 10)", "SQL Injection & XSS", "wireless Network Hacking", "Cryptography Basics"]
             }
         ],
-        faqs: [],
+        faqs: [
+            {
+                question: "Is hacking illegal?",
+                answer: "Unauthorized hacking is illegal. This course teaches Ethical Hacking, which is performed with permission to improve security."
+            },
+            {
+                question: "What tools will I learn?",
+                answer: "You will learn industry-standard tools like Kali Linux, Nmap, Metasploit, Wireshark, Burp Suite, and many more."
+            },
+            {
+                question: "Can I become a bug bounty hunter after this?",
+                answer: "Yes, the course covers web application security which is essential for bug bounty programs."
+            }
+        ],
         testimonials: []
     },
     {
@@ -145,7 +188,50 @@ export const courses = [
         tag: "App Dev",
         certificateImage: "/images/certificate_python.jpg",
         features: ["Build 10+ Apps", "Publication Support", "Flutter & React Native"],
-        learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        learningOutcomes: [
+            "Build native Android apps with Kotlin",
+            "Develop iOS apps using Swift",
+            "Create cross-platform apps with Flutter",
+            "Understand Mobile UI/UX Principles",
+            "Integrate REST APIs and Firebase",
+            "Publish apps to Google Play Store & Apple App Store"
+        ],
+        requirements: [
+            "Basic programming logic",
+            "A computer capable of running Android Studio / Xcode (Mac required for iOS)",
+            "Passion for mobile technology"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: Android Development with Kotlin",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["Kotlin Basics", "Android Studio Setup", "Activities & Layouts", "RecyclerView & Adapters", "Networking with Retrofit"]
+            },
+            {
+                title: "Module 2: iOS Development with Swift",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["Swift Fundamentals", "Xcode & Interface Builder", "UIKit vs SwiftUI", "Core Data", "App Architecture"]
+            },
+            {
+                title: "Module 3: Cross-Platform with Flutter",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["Dart Programming", "Flutter Widgets", "State Management (Provider/Bloc)", "Navigation"]
+            }
+        ],
+        faqs: [
+            {
+                question: "Do I need a Mac?",
+                answer: "For iOS development, a Mac is required. However, you can learn Android and Flutter on Windows."
+            },
+            {
+                question: "Will we build real apps?",
+                answer: "Yes, you will build clones of popular apps like WhatsApp, Instagram, and a full-featured E-commerce app."
+            }
+        ],
+        testimonials: []
     },
     {
         id: "artificial-intelligence-ai",
@@ -164,7 +250,46 @@ export const courses = [
         language: "English",
         tag: "AI",
         certificateImage: "/images/certificate_python.jpg",
-        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        features: ["TensorFlow & PyTorch", "Real-world Projects", "NLP & Vision", "Deploy AI Models"],
+        learningOutcomes: [
+            "Understand Machine Learning & Deep Learning foundations",
+            "Build Neural Networks with TensorFlow/Keras",
+            "Process text data with NLP techniques",
+            "Analyze images with Computer Vision",
+            "Deploy AI models to production"
+        ],
+        requirements: [
+            "Proficiency in Python",
+            "Basic understanding of Linear Algebra and Statistics",
+            "Familiarity with data manipulation libraries (Pandas, NumPy)"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: AI Foundations",
+                duration: "3 Weeks",
+                lessons: "10 Lessons",
+                content: ["Python for AI", "Mathematics for ML", "Introduction to Neural Networks"]
+            },
+            {
+                title: "Module 2: Deep Learning",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["CNNs for Computer Vision", "RNNs & LSTMs", "Transfer Learning", "Generative AI Basics"]
+            },
+            {
+                title: "Module 3: Natural Language Processing",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Text Preprocessing", "Word Embeddings", "Transformers & BERT", "LLM Concepts"]
+            }
+        ],
+        faqs: [
+            {
+                question: "Is Python mandatory?",
+                answer: "Yes, Python is the primary language used in the AI industry and this course."
+            }
+        ],
+        testimonials: []
     },
     {
         id: "digital-marketing",
@@ -183,7 +308,47 @@ export const courses = [
         language: "English",
         tag: "Marketing",
         certificateImage: "/images/certificate_python.jpg",
-        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        features: ["Certified Experts", "Live Campaigns", "SEO & SEM Mastery", "Freelancing Guide"],
+        learningOutcomes: [
+            "Master Search Engine Optimization (SEO)",
+            "Run profitable Google Ads campaigns",
+            "Social Media Marketing (Instagram, Facebook, LinkedIn)",
+            "Content Marketing & Copywriting",
+            "Email Marketing strategies",
+            "Web Analytics & Reporting"
+        ],
+        requirements: [
+            "No technical background needed",
+            "Basic internet savvy",
+            "Creativity and strategic thinking"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: Intro to Digital Marketing",
+                duration: "1 Week",
+                lessons: "5 Lessons",
+                content: ["Marketing Fundamentals", "Branding Basics", "Consumer Psychology"]
+            },
+            {
+                title: "Module 2: SEO & Content",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Keyword Research", "On-Page & Off-Page SEO", "Content Strategy", "Blogging"]
+            },
+            {
+                title: "Module 3: Social Media & Ads",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["Facebook/Instagram Ads", "Google Ads (PPC)", "LinkedIn Marketing", "Retargeting"]
+            }
+        ],
+        faqs: [
+            {
+                question: "Is this suitable for business owners?",
+                answer: "Yes! Many entrepreneurs take this course to learn how to market their own businesses effectively."
+            }
+        ],
+        testimonials: []
     },
     {
         id: "data-analytics",
@@ -202,7 +367,41 @@ export const courses = [
         language: "English",
         tag: "Data",
         certificateImage: "/images/certificate_python.jpg",
-        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        features: ["SQL Advanced", "PowerBI Dashboards", "Python for Data", "Business Intelligence"],
+        learningOutcomes: [
+            "Query data effectively with SQL",
+            "Clean and analyze data using Python (Pandas)",
+            "Create interactive dashboards in PowerBI & Tableau",
+            "Perform Exploratory Data Analysis (EDA)",
+            "Storytelling with Data"
+        ],
+        requirements: [
+            "Basic math skills",
+            "Familiarity with Excel is a plus",
+            "Analytical mindset"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: Excel & SQL",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Advanced Excel", "SQL Basics", "Joins & Subqueries", "Database Management"]
+            },
+            {
+                title: "Module 2: Python for Analytics",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Python Syntax", "Pandas & NumPy", "Data Cleaning", "Matplotlib & Seaborn"]
+            },
+            {
+                title: "Module 3: Visualization & BI",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["PowerBI Fundamentals", "Tableau Basics", "Dashboard Design", "Reporting"]
+            }
+        ],
+        faqs: [],
+        testimonials: []
     },
     {
         id: "autocad-catia",
@@ -221,7 +420,40 @@ export const courses = [
         language: "English",
         tag: "Design",
         certificateImage: "/images/certificate_python.jpg",
-        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        features: ["2D Drafting", "3D Modeling", "Industry Standards", "Product Design"],
+        learningOutcomes: [
+            "Create precise 2D drawings with AutoCAD",
+            "Master 3D modeling in CATIA",
+            "Understand Geometric Dimensioning & Tolerancing (GD&T)",
+            "Perform assembly modeling",
+            "Drafting standards and plotting"
+        ],
+        requirements: [
+            "Engineering background (Mechanical/Civil preferred)",
+            "Spatial visualization skills"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: AutoCAD 2D",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Interface & Drawing Tools", "Modifying Objects", "Layers & Blocks", "Dimensions & Text"]
+            },
+            {
+                title: "Module 2: AutoCAD 3D",
+                duration: "2 Weeks",
+                lessons: "8 Lessons",
+                content: ["3D Modeling Basics", "Solid Editing", "Rendering & Materials"]
+            },
+            {
+                title: "Module 3: CATIA V5",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["Sketcher Workbench", "Part Design", "Assembly Design", "Drafting Workbench", "Surface Design"]
+            }
+        ],
+        faqs: [],
+        testimonials: []
     },
     {
         id: "aws-cloud-computing",
@@ -240,7 +472,40 @@ export const courses = [
         language: "English",
         tag: "Cloud",
         certificateImage: "/images/certificate_python.jpg",
-        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        features: ["EC2 & S3", "Serverless", "AWS Certification", "DevOps Basics"],
+        learningOutcomes: [
+            "Understand Cloud Computing concepts",
+            "Manage AWS Core Services (EC2, S3, RDS)",
+            "Architect secure and scalable solutions",
+            "Implement Serverless computing with Lambda",
+            "DevOps practices on AWS"
+        ],
+        requirements: [
+            "Basic IT & Networking knowledge",
+            "Command line basics"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: AWS Basics",
+                duration: "2 Weeks",
+                lessons: "8 Lessons",
+                content: ["Cloud Concepts", "IAM & Security", "EC2 Instances", "S3 Storage"]
+            },
+            {
+                title: "Module 2: Networking & Database",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["VPC & Subnets", "Route 53", "RDS & DynamoDB", "Load Balancing"]
+            },
+            {
+                title: "Module 3: Architecting & DevOps",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Well-Architected Framework", "CloudFormation", "Elastic Beanstalk", "CI/CD on AWS"]
+            }
+        ],
+        faqs: [],
+        testimonials: []
     },
     {
         id: "hr-analytics-recruitment",
@@ -259,7 +524,34 @@ export const courses = [
         language: "English",
         tag: "HR",
         certificateImage: "/images/certificate_python.jpg",
-        features: [], learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        features: ["Talent Acquisition", "Data-Driven HR", "Employee Retention", "Compliance"],
+        learningOutcomes: [
+            "Recruitment Lifecycle Management",
+            "Sourcing Strategies",
+            "HR Metrics & Analytics",
+            "Performance Management",
+            "Labor Laws & Compliance"
+        ],
+        requirements: [
+            "Interest in Human Resources",
+            "Good communication skills"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: Recruitment Fundamentals",
+                duration: "3 Weeks",
+                lessons: "10 Lessons",
+                content: ["Job Analysis", "Sourcing Candidates", "Screening & Interviewing", "Onboarding"]
+            },
+            {
+                title: "Module 2: HR Analytics",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Data in HR", "Key Metrics (Attrition, Time-to-Hire)", "Predictive Analytics"]
+            }
+        ],
+        faqs: [],
+        testimonials: []
     },
     {
         id: "data-science",
@@ -279,7 +571,33 @@ export const courses = [
         tag: "Data",
         certificateImage: "/images/certificate_python.jpg",
         features: ["Data Visualization", "Statistical Analysis", "Python & R", "Big Data technologies"],
-        learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        learningOutcomes: [
+            "Statistical Analysis & Hypothesis Testing",
+            "Advanced Data Wrangling",
+            "Machine Learning Algorithms",
+            "Big Data Processing (Spark)",
+            "Data Storytelling"
+        ],
+        requirements: [
+            "Mathematics (Calculus/Statistics)",
+            "Programming Basics (Python preferred)"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: Statistics & Python",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Descriptive & Inferential Statistics", "Probability", "Python Data Stack"]
+            },
+            {
+                title: "Module 2: Machine Learning",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["Regression", "Classification", "Clustering", "Model Evaluation"]
+            }
+        ],
+        faqs: [],
+        testimonials: []
     },
     {
         id: "machine-learning",
@@ -299,7 +617,39 @@ export const courses = [
         tag: "AI",
         certificateImage: "/images/certificate_python.jpg",
         features: ["Supervised Learning", "Unsupervised Learning", "Neural Networks", "Deep Learning"],
-        learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        learningOutcomes: [
+            "Data Preprocessing & Feature Engineering",
+            "Supervised Learning Algorithms",
+            "Unsupervised Learning & Dimensionality Reduction",
+            "Neural Networks & Deep Learning",
+            "MLOps: Model Deployment"
+        ],
+        requirements: [
+            "Strong Python skills",
+            "Linear Algebra & Calculus"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: ML Fundamentals",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Linear Regression", "Logistic Regression", "Decision Trees", "SVM"]
+            },
+            {
+                title: "Module 2: Advanced ML",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Ensemble Methods", "Random Forest", "Gradient Boosting (XGBoost)"]
+            },
+            {
+                title: "Module 3: Neural Networks",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Perceptrons", "Backpropagation", "Deep Neural Networks"]
+            }
+        ],
+        faqs: [],
+        testimonials: []
     },
     {
         id: "ui-ux-design",
@@ -319,7 +669,40 @@ export const courses = [
         tag: "Design",
         certificateImage: "/images/certificate_python.jpg",
         features: ["Wireframing", "Prototyping", "User Research", "Figma & Adobe XD"],
-        learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        learningOutcomes: [
+            "Design Thinking Process",
+            "User Research & Personas",
+            "Wireframing & Prototyping",
+            "High-Fidelity UI Design",
+            "Design Systems & Handoff"
+        ],
+        requirements: [
+            "Creativity & Detail-oriented",
+            "Empathy for users",
+            "No design background needed"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: UX Foundations",
+                duration: "2 Weeks",
+                lessons: "8 Lessons",
+                content: ["What is UX?", "User Research Methods", "Information Architecture"]
+            },
+            {
+                title: "Module 2: UI Design Fundamentals",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Typography & Color Theory", "Layout & Grids", "Design Tools (Figma Intro)"]
+            },
+            {
+                title: "Module 3: Advanced Figma",
+                duration: "3 Weeks",
+                lessons: "12 Lessons",
+                content: ["Auto Layout", "Components & Variants", "Prototyping & Animation"]
+            }
+        ],
+        faqs: [],
+        testimonials: []
     },
     {
         id: "finance",
@@ -339,7 +722,32 @@ export const courses = [
         tag: "Finance",
         certificateImage: "/images/certificate_python.jpg",
         features: ["Financial Modeling", "Risk Management", "Investment Analysis", "Corporate Finance"],
-        learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        learningOutcomes: [
+            "Read and analyze financial statements",
+            "Build robust financial models in Excel",
+            "Valuation techniques (DCF, Comps)",
+            "Investment strategies & Portfolio Management"
+        ],
+        requirements: [
+            "Basic Accounting knowledge",
+            "Proficiency in Excel"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: Accounting & Analysis",
+                duration: "3 Weeks",
+                lessons: "10 Lessons",
+                content: ["Balance Sheet", "Income Statement", "Cash Flow", "Financial Ratios"]
+            },
+            {
+                title: "Module 2: Financial Modeling",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["Excel Shortcuts", "Forecasting", "Building 3-Statement Models"]
+            }
+        ],
+        faqs: [],
+        testimonials: []
     },
     {
         id: "vlsi-design",
@@ -359,6 +767,32 @@ export const courses = [
         tag: "Hardware",
         certificateImage: "/images/certificate_python.jpg",
         features: ["Digital Circuit Design", "Verilog/VHDL", "FPGA Programming", "SoC Architecture"],
-        learningOutcomes: [], requirements: [], syllabus: [], faqs: [], testimonials: []
+        learningOutcomes: [
+            "Digital Logic Design concepts",
+            "CMOS Technology",
+            "Coding with Verilog/SystemVerilog",
+            "Synthesis & Simulation",
+            "Physical Design Basics"
+        ],
+        requirements: [
+            "Electronics Engineering background",
+            "Knowledge of Digital Electronics"
+        ],
+        syllabus: [
+            {
+                title: "Module 1: Digital Electronics Review",
+                duration: "2 Weeks",
+                lessons: "8 Lessons",
+                content: ["Boolean Algebra", "Combinational Circuits", "Sequential Circuits"]
+            },
+            {
+                title: "Module 2: HDL Programming",
+                duration: "4 Weeks",
+                lessons: "15 Lessons",
+                content: ["Verilog Syntax", "Testbenches", "FSM Design", "FPGA Implementation"]
+            }
+        ],
+        faqs: [],
+        testimonials: []
     }
 ];
